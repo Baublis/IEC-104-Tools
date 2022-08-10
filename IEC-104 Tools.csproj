@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{948D9148-AA51-4C51-9916-31485F751941}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>IEC_104_Tools</RootNamespace>
+    <AssemblyName>IEC-104 Tools</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>IEC104.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>IEC_104_Tools.App</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CS101\BinaryCounterReading.cs" />
+    <Compile Include="CS101\Bitstring32.cs" />
+    <Compile Include="CS101\CauseOfTransmission.cs" />
+    <Compile Include="CS101\DoublePointInformation.cs" />
+    <Compile Include="CS101\EndOfInitialization.cs" />
+    <Compile Include="CS101\EventOfProtectionEquipment.cs" />
+    <Compile Include="CS101\FileObjects.cs" />
+    <Compile Include="CS101\FileServices.cs" />
+    <Compile Include="CS101\InformationObject.cs" />
+    <Compile Include="CS101\IntegratedTotals.cs" />
+    <Compile Include="CS101\Master.cs" />
+    <Compile Include="CS101\MeasuredValueNormalized.cs" />
+    <Compile Include="CS101\MeasuredValueScaled.cs" />
+    <Compile Include="CS101\MeasuredValueShort.cs" />
+    <Compile Include="CS101\OutputCircuitInfo.cs" />
+    <Compile Include="CS101\PackedOutputCircuitInfo.cs" />
+    <Compile Include="CS101\PackedStartEventsOfProtectionEquipment.cs" />
+    <Compile Include="CS101\ParameterMeasuredValues.cs" />
+    <Compile Include="CS101\QualityDescriptor.cs" />
+    <Compile Include="CS101\QualityDescriptorP.cs" />
+    <Compile Include="CS101\ScaledValue.cs" />
+    <Compile Include="CS101\SetpointCommandQualifier.cs" />
+    <Compile Include="CS101\SetpointCommands.cs" />
+    <Compile Include="CS101\SingleCommand.cs" />
+    <Compile Include="CS101\SingleEvent.cs" />
+    <Compile Include="CS101\SinglePointInformation.cs" />
+    <Compile Include="CS101\Slave.cs" />
+    <Compile Include="CS101\StartEvent.cs" />
+    <Compile Include="CS101\StatusAndStatusChangeDetection.cs" />
+    <Compile Include="CS101\StepPositionInformation.cs" />
+    <Compile Include="CS101\SystemInformationCommands.cs" />
+    <Compile Include="CS101\TypeID.cs" />
+    <Compile Include="CS104\TlsSecurityInformation.cs" />
+    <Compile Include="Other\ASDUParsingException.cs" />
+    <Compile Include="Other\BufferFrame.cs" />
+    <Compile Include="Other\ConnectionException.cs" />
+    <Compile Include="Other\CP16Time2a.cs" />
+    <Compile Include="Other\CP24Time2a.cs" />
+    <Compile Include="Other\CP32Time2a.cs" />
+    <Compile Include="Other\CP56Time2a.cs" />
+    <Compile Include="Other\DefaultDialogService.cs" />
+    <Compile Include="Other\Frame.cs" />
+    <Compile Include="Other\LibraryCommon.cs" />
+    <Compile Include="Other\SystemUtils.cs" />
+    <Compile Include="Windows\ACPI.xaml.cs">
+      <DependentUpon>ACPI.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ConParameters.xaml.cs">
+      <DependentUpon>ConParameters.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\PasswordWindow.xaml.cs">
+      <DependentUpon>PasswordWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\WindowHelp.xaml.cs">
+      <DependentUpon>WindowHelp.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\WindowParameters.xaml.cs">
+      <DependentUpon>WindowParameters.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\WindowProcess.xaml.cs">
+      <DependentUpon>WindowProcess.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\WindowSystem.xaml.cs">
+      <DependentUpon>WindowSystem.xaml</DependentUpon>
+    </Compile>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="CS101\ApplicationLayerParameters.cs" />
+    <Compile Include="CS101\ASDU.cs" />
+    <Compile Include="CS104\APCIParameters.cs" />
+    <Compile Include="CS104\Connection.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Windows\ACPI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Windows\ConParameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="Windows\PasswordWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="Windows\WindowHelp.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="Windows\WindowParameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="Windows\WindowProcess.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Include="Windows\WindowSystem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include=".editorconfig" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Properties\МЭК 101.pdf" />
+    <None Include="Properties\МЭК 104.pdf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\IEC104.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="IEC104.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
