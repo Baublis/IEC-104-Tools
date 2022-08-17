@@ -30,6 +30,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 using lib60870.CS101;
+using lib60870.CS101.InformationObjects;
 
 namespace lib60870.CS104
 {

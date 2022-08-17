@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using lib60870.CS101.InformationObjects;
 
 namespace lib60870.CS101
 {

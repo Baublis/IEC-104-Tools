@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using lib60870;
+using lib60870.CS101.InformationObjects;
 using lib60870.CS101;
 using lib60870.CS104;
 using System.Threading;

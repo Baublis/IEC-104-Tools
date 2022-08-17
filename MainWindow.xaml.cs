@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using lib60870;
 using lib60870.CS101;
+using lib60870.CS101.InformationObjects;
 using lib60870.CS104;
 using System.Windows.Input;
 using System.Windows.Controls;

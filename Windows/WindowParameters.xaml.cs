@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using lib60870;
+using lib60870.CS101.InformationObjects;
 using lib60870.CS101;
 using lib60870.CS104;
 
