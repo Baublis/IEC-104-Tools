@@ -397,12 +397,12 @@ namespace lib60870.CS104
         private int maxSentASDUs;
 
         /// <summary>
-        /// Индекс посредней ASDU, зашедшей в k-buffer
+        /// Индекс певрой ASDU, зашедшей в k-buffer
         /// </summary>
         private int oldestSentASDU = -1;
 
         /// <summary>
-        /// Индекс посредней ASDU, зашедшей в k-buffer
+        /// Индекс последней ASDU, зашедшей в k-buffer
         /// </summary>
         private int newestSentASDU = -1;
 
@@ -425,6 +425,7 @@ namespace lib60870.CS104
 
         private long lastConfirmationTime;              /* метка времени, когда было отправлено последнее подтверждающее сообщение */
         private bool timeoutT2Triggered = false;
+        private bool timeoutT1Triggered = false;
 
         private bool fullbuf_K = false;
         public bool fullbuf_K_out => fullbuf_K;
@@ -520,6 +521,7 @@ namespace lib60870.CS104
         {
             lastConfirmationTime = System.Int64.MaxValue;
             timeoutT2Triggered = false;
+            timeoutT1Triggered = false;
             outStandingTestFRConMessages = 0;
 
             uMessageTimeout = 0;
@@ -569,7 +571,8 @@ namespace lib60870.CS104
         /// Отправка пустого сообщения подверждения (S сообщение)
         /// </summary>
         private void SendSMessage(string massage_S)
-        {           
+        {
+            ResetT2Timeout();
             byte[] msg = new byte[6];
 
             msg[0] = 0x68;
@@ -822,13 +825,10 @@ namespace lib60870.CS104
 
             try
             {
-
                 lock (waitingToBeSent)
-                {
-
+                {                
                     while (waitingToBeSent.Count > 0)
-                    {
-
+                    {                      
                         if (IsSentBufferFull() == true)
                         {
                             break;
@@ -871,6 +871,8 @@ namespace lib60870.CS104
                 }                                       
                 else
                 {
+                    if (statistics.TimerT1Counter == (UInt64)(apciParameters.T1 * 1000))
+                        timeoutT1Triggered = true;
                     if (useSendMessageQueue)
                     {
                         lock (waitingToBeSent)
@@ -1162,8 +1164,8 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="asdu">ASDU для передачи</param>
         public override void SendASDU(ASDU asdu)
-        {
-            SendASDUInternal(asdu);         
+        {         
+            SendASDUInternal(asdu);           
         }
 
         public override ApplicationLayerParameters GetApplicationLayerParameters()
@@ -1176,16 +1178,13 @@ namespace lib60870.CS104
         /// </summary>
         public void SendStartDT_ACT()
         {
-            if (running)
-            {
-                netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
+            netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, STARTDT_ACT_MSG, 6);
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, STARTDT_ACT_MSG, 6);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STARTDT_ACT_SENDED);
-            }
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STARTDT_ACT_SENDED);
         }
 
         /// <summary>
@@ -1193,78 +1192,64 @@ namespace lib60870.CS104
         /// </summary>
         public void SendStopDT_ACT()
         {
-            if (running)
-            {
-                netStream.Write(STOPDT_ACT_MSG, 0, STOPDT_ACT_MSG.Length);
+            netStream.Write(STOPDT_ACT_MSG, 0, STOPDT_ACT_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, STOPDT_ACT_MSG, 6);
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, STOPDT_ACT_MSG, 6);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STOPDT_ACT_SENDED);
-            }
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STOPDT_ACT_SENDED);
         }
 
         public void SendStartDT_CON()
         {
-            if (running)
-            {
-                netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
+            netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, STARTDT_CON_MSG, 6);
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, STARTDT_CON_MSG, 6);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STARTDT_CON_SENDED);
-            }
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STARTDT_CON_SENDED);
         }
 
         public void SendStopDT_CON()
         {
-            if (running)
-            {
-                netStream.Write(STOPDT_CON_MSG, 0, STOPDT_CON_MSG.Length);
+            netStream.Write(STOPDT_CON_MSG, 0, STOPDT_CON_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, STOPDT_CON_MSG, 6);
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, STOPDT_CON_MSG, 6);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_SENDED);
-            }
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_SENDED);
         }
 
         public void SendTestFR_ACT()
         {
-            if (running)
-            {
-                UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
+            UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
 
-                netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
+            netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
+            outStandingTestFRConMessages++;
 
-                outStandingTestFRConMessages++;
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_ACT_MSG, 6);
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_ACT_MSG, 6);
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_ACT_SENDED);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_ACT_SENDED);
-            }
+            if (statistics.TimerT1Counter == (UInt64)(apciParameters.T1 * 1000))
+                uMessageTimeout = (UInt64)SystemUtils.currentTimeMillis() + (UInt64)(apciParameters.T1 * 1000);
         }
 
         public void SendTestFR_CON()
         {
-            if (running)
-            {
-                netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
+            netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
 
-                statistics.SentMsgCounter++;
+            statistics.SentMsgCounter++;
 
-                sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_CON_MSG, 6);
+            sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_CON_MSG, 6);
 
-                connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_CON_SENDED);
-            }          
+            connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_CON_SENDED);
         }
 
 
@@ -1301,6 +1286,22 @@ namespace lib60870.CS104
             }
         }
 
+        private void ResetT1_I_S_Timeout()
+        {
+            timeoutT1Triggered = false;
+            statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000);
+        }
+        private void ResetT1_U_Timeout()
+        {
+            uMessageTimeout = 0;
+            statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000);
+        }
+        private void ResetT2Timeout()
+        {
+            statistics.UnconfirmedReceiveSequenceCounter = 0;
+            timeoutT2Triggered = false;
+            statistics.TimerT2Counter = (UInt64)(apciParameters.T2 * 1000);
+        }
         private void ResetT3Timeout()
         {
             nextT3Timeout = (UInt64)SystemUtils.currentTimeMillis() + (UInt64)(apciParameters.T3 * 1000);
@@ -1316,6 +1317,12 @@ namespace lib60870.CS104
             if ((running == false) && (connecting == false))
             {               
                 ResetConnection();
+
+                ResetT1_I_S_Timeout();
+
+                ResetT1_U_Timeout();
+
+                ResetT2Timeout();
 
                 ResetT3Timeout();
 
@@ -1381,9 +1388,8 @@ namespace lib60870.CS104
 
         private bool checkConfirmTimeout(long currentTime)
         {
-            if ((currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000))
+            if ((currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000) && timeoutT2Triggered)
             {
-                //statistics.TimerT2Counter = (UInt64)(apciParameters.T2 * 1000);
                 return true;
             }             
             else
@@ -1433,6 +1439,7 @@ namespace lib60870.CS104
 
                 statistics.ReceiveSequenceCounter = (statistics.ReceiveSequenceCounter + 1) % 32768;
                 statistics.UnconfirmedReceiveSequenceCounter++;
+                ResetT1_I_S_Timeout();
 
                 try
                 {
@@ -1471,8 +1478,7 @@ namespace lib60870.CS104
                     connectionHandler(seqNo, ConnectionEvent.RECEIV_S);
                 if (CheckSequenceNumber(seqNo) == false)
                     return false;
-
-                uMessageTimeout = 0;
+                ResetT1_I_S_Timeout();
             }
             /* U format frame */
             else if ((buffer[2] & 0x03) == 0x03)
@@ -1494,20 +1500,15 @@ namespace lib60870.CS104
                     outStandingTestFRConMessages = 0;
                     if (connectionHandler != null)
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.TESTFR_CON_RECEIVED);
+                    ResetT1_U_Timeout();
                 }
                 else if (buffer[2] == 0x07)
                 { /* Пришел STARTDT ACT */
                     DebugLog("RCVD STARTDT_ACT");
-
-                    netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
-
-                    statistics.SentMsgCounter++;
-                    if (sentMessageHandler != null)
-                    {
-                        sentMessageHandler(sentMessageHandlerParameter, STARTDT_CON_MSG, 6);
-                    }
                     if (connectionHandler != null)
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.STARTDT_ACT_RECEIVED);
+
+                    SendStartDT_CON();
                 }
                 else if (buffer[2] == 0x0b)
                 { /* Пришел STARTDT_CON */
@@ -1524,8 +1525,6 @@ namespace lib60870.CS104
                     if (connectionHandler != null)
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_RECEIVED);
                 }
-
-                uMessageTimeout = 0;
             }
             /* Unknown message type */
             else
@@ -1616,7 +1615,7 @@ namespace lib60870.CS104
         /// </summary>
         private bool handleTimeouts()
         {
-            UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
+            UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();      
 
             if (currentTime > nextT3Timeout)
             {
@@ -1627,68 +1626,64 @@ namespace lib60870.CS104
                 }
                 else
                 {
-                    netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
-                    statistics.SentMsgCounter++;                
-                    uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
-                    outStandingTestFRConMessages++;
+                    SendTestFR_ACT();
 
                     ResetT3Timeout();
-
-                    sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_ACT_MSG, 6);
-                    connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_ACT_SENDED);
 
                     DebugLog("S message T3 timeout");
                 }
             }
             else
+            {
                 statistics.TimerT3Counter = nextT3Timeout - currentTime;
-
+            }
+                
             if (statistics.UnconfirmedReceiveSequenceCounter > 0)
             {
                 if (checkConfirmTimeout((long)currentTime))
 				{
                     lastConfirmationTime = (long)currentTime;
-                    statistics.UnconfirmedReceiveSequenceCounter = 0;
-                    timeoutT2Triggered = false;
-                    SendSMessage(" Таймаут Т2");
+                    SendSMessage(" Таймаут Т2");             
                 }
             }
 
-            if (uMessageTimeout != 0)
+            if (uMessageTimeout != 0 )
             {
-                if (currentTime > uMessageTimeout)
+                if (statistics.TimerT1Counter > 100)
                 {
-                    statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000);
+                    statistics.TimerT1Counter = uMessageTimeout - currentTime;
+                }
+                else
+                {
+                    ResetT1_U_Timeout();
 
-                    DebugLog("S message T1 timeout");
+                    DebugLog("U message T1 timeout");
 
                     connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T1);
 
                     return false;
                 }
-                else
-                {
-                    statistics.TimerT1Counter = uMessageTimeout - currentTime;
-                }                  
             }
 
 
             /* проверить, подтвердил ли контрагент сообщения */
             lock (sentASDUs)
             {
-                if (oldestSentASDU != -1)
+                if (oldestSentASDU != -1 && timeoutT1Triggered)
                 {
-                    if (((long)currentTime - sentASDUs[oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000))
+                    if (statistics.TimerT1Counter > 100)
                     {
-                        DebugLog("U message T1 timeout");
+                        statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000) - ((UInt64)currentTime - (UInt64)sentASDUs[oldestSentASDU].sentTime);
+                    }
+                    else
+                    {
+                        ResetT1_I_S_Timeout();
+
+                        DebugLog("I message T1 timeout");
 
                         connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T1);
 
                         return false;
-                    }
-                    else
-                    {
-                        statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000) - ((UInt64)currentTime - (UInt64)sentASDUs[oldestSentASDU].sentTime);
                     }
                 }
             }
@@ -1837,22 +1832,13 @@ namespace lib60870.CS104
                             }
 
                         }
-
-                        netStream.ReadTimeout = 50;                  
-
                         if (autostart)
-                        {
-                            netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
-                            statistics.SentMsgCounter++;                         
-                            if (connectionHandler != null)
-                                connectionHandler(connectionHandlerParameter, ConnectionEvent.STARTDT_ACT_SENDED);
-                            if (sentMessageHandler != null)                         
-                                sentMessageHandler(sentMessageHandlerParameter, STARTDT_ACT_MSG, 6);                          
-                        }
+                            SendStartDT_ACT();
 
+                        netStream.ReadTimeout = 50;                                    
                         running = true;
                         socketError = false;
-                        connecting = false;                  
+                        connecting = false;
                     }
                     catch (SocketException se)
                     {

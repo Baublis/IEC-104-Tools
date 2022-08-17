@@ -14,11 +14,11 @@ using System.Windows.Shapes;
 namespace IEC_104_Tools
 {
     /// <summary>
-    /// Логика взаимодействия для ACPI.xaml
+    /// Логика взаимодействия для APCI.xaml
     /// </summary>
-    public partial class ACPI : Window
+    public partial class APCI : Window
     {
-        public ACPI()
+        public APCI()
         {
             InitializeComponent();
         }

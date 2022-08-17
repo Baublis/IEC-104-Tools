@@ -450,14 +450,19 @@ namespace IEC_104_Tools
 			quickAccessFiltrs.Visibility = Visibility.Visible;
 		}
 
+		private void grid_main_MouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			this.Dispatcher.Invoke((Action)(() => automaticScrolling.IsChecked = false));
+		}
+
 
 
 		/// <summary>
 		/// Окна :
 		/// </summary>
-		private void show_ACPI_Click(object sender, RoutedEventArgs e)
+		private void show_APCI_Click(object sender, RoutedEventArgs e)
 		{
-			ACPI taskWindow = new ACPI();
+			APCI taskWindow = new APCI();
 			taskWindow.Owner = this;
 			taskWindow.Show();
 		}
@@ -2329,7 +2334,7 @@ namespace IEC_104_Tools
 									});
 								}
 							});
-						}
+						}					
 					}
 					break;
 
@@ -3007,7 +3012,7 @@ namespace IEC_104_Tools
 			{
 				MessageBox.Show("Соединение отсутствует", "Отмена операции", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
-		}
+		}   
     }
     public class ValueToBrushConverter : IValueConverter
 	{

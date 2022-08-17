@@ -52,7 +52,7 @@
                     <MenuItem Header="Передача файлов" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Тесты">
-                    <MenuItem Header="Команды APCI (CS 104)" Click="show_ACPI_Click" />
+                    <MenuItem Header="Команды APCI (CS 104)" Click="show_APCI_Click" />
                     <MenuItem Header="Flow control (CS 104)" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Помощь">
@@ -156,7 +156,7 @@
                                     <ColumnDefinition Width="57*"/>
                                     <ColumnDefinition Width="385*"/>
                                 </Grid.ColumnDefinitions>
-                                <DataGrid x:Name="grid_main" AutoGenerateColumns="False" RenderTransformOrigin="0.425,0.503" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" Focusable="True" Margin="0" Grid.ColumnSpan="2" LoadingRow="grid_LoadingRow" Background="{x:Null}">
+                                <DataGrid x:Name="grid_main" AutoGenerateColumns="False" RenderTransformOrigin="0.425,0.503" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" Focusable="True" Margin="0" Grid.ColumnSpan="2" LoadingRow="grid_LoadingRow" Background="{x:Null}" MouseWheel="grid_main_MouseWheel">
                                     <DataGrid.RowStyle >
                                         <Style TargetType="{x:Type DataGridRow}">
                                             <Setter Property="Background"  Value="{Binding PCI, Converter={StaticResource PCIToBrushConverter}}"/>
