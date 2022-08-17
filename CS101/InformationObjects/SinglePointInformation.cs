@@ -21,10 +21,17 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 	public class SinglePointInformation : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SinglePointInformation";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}
@@ -211,6 +218,13 @@ namespace lib60870.CS101
 
 	public class PackedSinglePointWithSCD : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "PackedSinglePointWithSCD";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}

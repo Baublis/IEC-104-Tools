@@ -1,5 +1,5 @@
 /*
- *  MeasuredValueShortFloat.cs
+ *  BitString32.cs
  *
  *  Copyright 2016 MZ Automation GmbH
  *
@@ -23,17 +23,25 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
-	public class MeasuredValueShort : InformationObject
+	
+	public class Bitstring32 : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "Bitstring32";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ME_NC_1;
+				return TypeID.M_BO_NA_1;
 			}
 		}
 
@@ -43,14 +51,11 @@ namespace lib60870.CS101
 			}
 		}
 
-		private float value;
+		private UInt32 value;
 
-		public float Value {
+		public UInt32 Value {
 			get {
 				return this.value;
-			}
-			set {
-				this.value = value;
 			}
 		}
 
@@ -62,15 +67,13 @@ namespace lib60870.CS101
 			}
 		}
 
-		public MeasuredValueShort (int objectAddress, float value, QualityDescriptor quality)
-			: base(objectAddress)
+		public Bitstring32 (int ioa, UInt32 value, QualityDescriptor quality) : base(ioa)
 		{
 			this.value = value;
 			this.quality = quality;
 		}
 
-
-		internal MeasuredValueShort (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal Bitstring32 (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -79,29 +82,28 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			/* parse float value */
-			value = System.BitConverter.ToSingle (msg, startIndex);
-			startIndex += 4;
+			value = msg [startIndex++];
+			value += ((uint)msg [startIndex++] * 0x100);
+			value += ((uint)msg [startIndex++] * 0x10000);
+			value += ((uint)msg [startIndex++] * 0x1000000);
 
-			/* parse QDS (quality) */
-			quality = new QualityDescriptor (msg [startIndex++]);
+			quality = new QualityDescriptor (msg[startIndex++]);
+
 		}
 
 		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
-			byte[] floatEncoded = BitConverter.GetBytes (value);
-
-			if (BitConverter.IsLittleEndian == false)
-				Array.Reverse (floatEncoded);
-
-			frame.AppendBytes (floatEncoded);
+			frame.SetNextByte((byte) (value % 0x100));
+			frame.SetNextByte((byte) ((value / 0x100) % 0x100));
+			frame.SetNextByte((byte) ((value / 0x10000) % 0x100));
+			frame.SetNextByte((byte) (value / 0x1000000));
 
 			frame.SetNextByte (quality.EncodedValue);
 		}
 	}
 
-	public class MeasuredValueShortWithCP24Time2a : MeasuredValueShort
+	public class Bitstring32WithCP24Time2a : Bitstring32
 	{
 		override public int GetEncodedSize() {
 			return 8;
@@ -109,7 +111,7 @@ namespace lib60870.CS101
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ME_TC_1;
+				return TypeID.M_BO_TA_1;
 			}
 		}
 
@@ -127,13 +129,13 @@ namespace lib60870.CS101
 			}
 		}
 
-		public MeasuredValueShortWithCP24Time2a (int objectAddress, float value, QualityDescriptor quality, CP24Time2a timestamp)
-			: base(objectAddress, value, quality)
+		public Bitstring32WithCP24Time2a(int ioa, UInt32 value, QualityDescriptor quality, CP24Time2a timestamp) :
+			base(ioa, value, quality)
 		{
 			this.timestamp = timestamp;
 		}
 
-		internal MeasuredValueShortWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal Bitstring32WithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -142,9 +144,9 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 5; /* skip float */
+			startIndex += 5; /* value + quality */
 
-			/* parse CP56Time2a (time stamp) */
+			/* parse CP24Time2a (time stamp) */
 			timestamp = new CP24Time2a (msg, startIndex);
 		}
 
@@ -153,10 +155,9 @@ namespace lib60870.CS101
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
 		}
-
 	}
 
-	public class MeasuredValueShortWithCP56Time2a : MeasuredValueShort
+	public class Bitstring32WithCP56Time2a : Bitstring32
 	{
 		override public int GetEncodedSize() {
 			return 12;
@@ -164,7 +165,7 @@ namespace lib60870.CS101
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ME_TF_1;
+				return TypeID.M_BO_TB_1;
 			}
 		}
 
@@ -182,13 +183,13 @@ namespace lib60870.CS101
 			}
 		}
 
-		public MeasuredValueShortWithCP56Time2a (int objectAddress, float value, QualityDescriptor quality, CP56Time2a timestamp)
-			: base(objectAddress, value, quality)
+		public Bitstring32WithCP56Time2a(int ioa, UInt32 value, QualityDescriptor quality, CP56Time2a timestamp) :
+			base(ioa, value, quality)
 		{
 			this.timestamp = timestamp;
 		}
 
-		internal MeasuredValueShortWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal Bitstring32WithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -197,7 +198,7 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 5; /* skip float */
+			startIndex += 5; /* value + quality */
 
 			/* parse CP56Time2a (time stamp) */
 			timestamp = new CP56Time2a (msg, startIndex);
@@ -208,6 +209,8 @@ namespace lib60870.CS101
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
 		}
+
 	}
+
 }
 

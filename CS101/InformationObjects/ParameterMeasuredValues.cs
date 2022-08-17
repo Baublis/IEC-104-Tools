@@ -21,11 +21,18 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 
 	public class ParameterNormalizedValue : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ParameterNormalizedValue";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 3;
 		}
@@ -125,6 +132,13 @@ namespace lib60870.CS101
 
 	public class ParameterScaledValue : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ParameterScaledValue";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 3;
 		}
@@ -194,6 +208,13 @@ namespace lib60870.CS101
 
 	public class ParameterFloatValue : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ParameterFloatValue";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}
@@ -267,6 +288,13 @@ namespace lib60870.CS101
 
 	public class ParameterActivation : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ParameterActivation";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}

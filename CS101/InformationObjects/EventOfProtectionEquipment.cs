@@ -1,5 +1,5 @@
 /*
- *  PackedStartEventsOfProtectionEquipment.cs
+ *  EventOfProtectionEquipment.cs
  *
  *  Copyright 2016 MZ Automation GmbH
  *
@@ -22,42 +22,39 @@
  */
 
 using System;
-using System.Collections.Generic;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
-
-	public class PackedStartEventsOfProtectionEquipment : InformationObject
+	public class EventOfProtectionEquipment : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "EventOfProtectionEquipment";
+			}
+		}
 		override public int GetEncodedSize() {
-			return 7;
+			return 6;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_EP_TB_1;
+				return TypeID.M_EP_TA_1;
 			}
 		}
 
 		override public bool SupportsSequence {
 			get {
-				return true;
+				return false;
 			}
 		}
 
-		private StartEvent spe;
+		private SingleEvent singleEvent;
 
-		public StartEvent SPE {
+		public SingleEvent Event {
 			get {
-				return spe;
-			}
-		}
-
-		private QualityDescriptorP qdp;
-
-		public QualityDescriptorP QDP {
-			get {
-				return qdp;
+				return singleEvent;
 			}
 		}
 
@@ -76,17 +73,16 @@ namespace lib60870.CS101
 				return this.timestamp;
 			}
 		}
-			
-		public PackedStartEventsOfProtectionEquipment (int objectAddress, StartEvent spe, QualityDescriptorP qdp, CP16Time2a elapsedTime, CP24Time2a timestamp)
-			: base(objectAddress)
+
+		public EventOfProtectionEquipment(int ioa, SingleEvent singleEvent, CP16Time2a elapsedTime, CP24Time2a timestamp)
+			: base (ioa)
 		{
-			this.spe = spe;
-			this.qdp = qdp;
+			this.singleEvent = singleEvent;
 			this.elapsedTime = elapsedTime;
 			this.timestamp = timestamp;
 		}
 
-		internal PackedStartEventsOfProtectionEquipment (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal EventOfProtectionEquipment (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -94,9 +90,8 @@ namespace lib60870.CS101
 
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
-
-			spe = new StartEvent (msg [startIndex++]);
-			qdp = new QualityDescriptorP (msg [startIndex++]);
+			
+			singleEvent = new SingleEvent (msg [startIndex++]);
 
 			elapsedTime = new CP16Time2a (msg, startIndex);
 			startIndex += 2;
@@ -104,13 +99,11 @@ namespace lib60870.CS101
 			/* parse CP56Time2a (time stamp) */
 			timestamp = new CP24Time2a (msg, startIndex);
 		}
-			
+
 		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (spe.EncodedValue);
-
-			frame.SetNextByte (qdp.EncodedValue);
+			frame.SetNextByte (singleEvent.EncodedValue);
 
 			frame.AppendBytes (elapsedTime.GetEncodedValue ());
 
@@ -118,37 +111,37 @@ namespace lib60870.CS101
 		}
 	}
 
-	public class PackedStartEventsOfProtectionEquipmentWithCP56Time2a : InformationObject
+	public class EventOfProtectionEquipmentWithCP56Time2a : InformationObject
 	{
+
+		override public string Name
+		{
+			get
+			{
+				return "EventOfProtectionEquipmentWithCP56Time2a";
+			}
+		}
 		override public int GetEncodedSize() {
-			return 11;
+			return 10;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_EP_TE_1;
+				return TypeID.M_EP_TD_1;
 			}
 		}
 
 		override public bool SupportsSequence {
 			get {
-				return true;
+				return false;
 			}
 		}
 
-		private StartEvent spe;
+		private SingleEvent singleEvent;
 
-		public StartEvent SPE {
+		public SingleEvent Event {
 			get {
-				return spe;
-			}
-		}
-
-		private QualityDescriptorP qdp;
-
-		public QualityDescriptorP QDP {
-			get {
-				return qdp;
+				return singleEvent;
 			}
 		}
 
@@ -168,16 +161,15 @@ namespace lib60870.CS101
 			}
 		}
 
-		public PackedStartEventsOfProtectionEquipmentWithCP56Time2a (int objectAddress, StartEvent spe, QualityDescriptorP qdp, CP16Time2a elapsedTime, CP56Time2a timestamp)
-			: base(objectAddress)
+		public EventOfProtectionEquipmentWithCP56Time2a (int ioa, SingleEvent singleEvent, CP16Time2a elapsedTime, CP56Time2a timestamp)
+			: base (ioa)
 		{
-			this.spe = spe;
-			this.qdp = qdp;
+			this.singleEvent = singleEvent;
 			this.elapsedTime = elapsedTime;
 			this.timestamp = timestamp;
 		}
 
-		internal PackedStartEventsOfProtectionEquipmentWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal EventOfProtectionEquipmentWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -186,8 +178,7 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			spe = new StartEvent (msg [startIndex++]);
-			qdp = new QualityDescriptorP (msg [startIndex++]);
+			singleEvent = new SingleEvent (msg [startIndex++]);
 
 			elapsedTime = new CP16Time2a (msg, startIndex);
 			startIndex += 2;
@@ -199,9 +190,7 @@ namespace lib60870.CS101
 		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (spe.EncodedValue);
-
-			frame.SetNextByte (qdp.EncodedValue);
+			frame.SetNextByte (singleEvent.EncodedValue);
 
 			frame.AppendBytes (elapsedTime.GetEncodedValue ());
 

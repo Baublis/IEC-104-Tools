@@ -1,4 +1,6 @@
 /*
+ *  MeasuredValueScaled.cs
+ *
  *  Copyright 2016 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
@@ -21,17 +23,25 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
-	public class StepPositionInformation : InformationObject
+	public class MeasuredValueScaled : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "MeasuredValueScaled";
+			}
+		}
+
 		override public int GetEncodedSize() {
-			return 2;
+			return 3;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ST_NA_1;
+				return TypeID.M_ME_NB_1;
 			}
 		}
 
@@ -41,38 +51,11 @@ namespace lib60870.CS101
 			}
 		}
 
-		private int value;
+		private ScaledValue scaledValue;
 
-		/// <summary>
-		/// Step position (range -64 ... +63)
-		/// </summary>
-		/// <value>The value.</value>
-		public int Value {
+		public ScaledValue ScaledValue {
 			get {
-				return this.value;
-			}
-			set {
-				if (value > 63)
-					this.value = 63;
-				else if (value < -64)
-					this.value = -64;
-				else
-					this.value = value;
-			}
-		}
-
-		private bool isTransient;
-
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="lib60870.StepPositionInformation"/> is in transient state.
-		/// </summary>
-		/// <value><c>true</c> if transient; otherwise, <c>false</c>.</value>
-		public bool Transient {
-			get {
-				return this.isTransient;
-			}
-			set {
-				this.isTransient = value;
+				return this.scaledValue;
 			}
 		}
 
@@ -84,68 +67,54 @@ namespace lib60870.CS101
 			}
 		}
 
-		public StepPositionInformation(int ioa, int value, bool isTransient, QualityDescriptor quality) :
-			base(ioa)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.MeasuredValueScaled"/> class.
+		/// </summary>
+		/// <param name="objectAddress">Information object address</param>
+		/// <param name="value">scaled value (range -32768 - 32767) </param>
+		/// <param name="quality">quality descriptor (according to IEC 60870-5-101:2003 7.2.6.3)</param>
+		public MeasuredValueScaled (int objectAddress, int value, QualityDescriptor quality)
+			: base(objectAddress)
 		{
-			if ((value < -64) || (value > 63))
-				throw new ArgumentOutOfRangeException ("value has to be in range -64 .. 63");
-
-			Value = value;
-			Transient = isTransient;
+			this.scaledValue = new ScaledValue(value);
 			this.quality = quality;
 		}
 
-		internal StepPositionInformation (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-			base(parameters, msg, startIndex, isSequence)
+		internal MeasuredValueScaled (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSquence) :
+			base(parameters, msg, startIndex, isSquence)
 		{
-			if (!isSequence)
+			if (!isSquence) 
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			/* parse VTI (value with transient state indication) */
-			byte vti = msg [startIndex++];
+			scaledValue = new ScaledValue (msg, startIndex);
+			startIndex += 2;
 
-			isTransient = ((vti & 0x80) == 0x80);
-
-			value = (vti & 0x7f);
-
-			if (value > 63)
-				value = value - 128;
-
-			quality = new QualityDescriptor (msg[startIndex++]);
+			/* parse QDS (quality) */
+			quality = new QualityDescriptor (msg [startIndex++]);
 		}
 
 		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
-			byte vti;
+			frame.AppendBytes (scaledValue.GetEncodedValue ());
 
-			if (value < 0)
-				vti = (byte)(value + 128);
-			else
-				vti = (byte)value;
-
-			if (isTransient)
-				vti += 0x80;
-
-			frame.SetNextByte (vti);
-				
 			frame.SetNextByte (quality.EncodedValue);
 		}
 
 	}
 
-	public class StepPositionWithCP24Time2a : StepPositionInformation
+	public class MeasuredValueScaledWithCP24Time2a : MeasuredValueScaled
 	{
 		override public int GetEncodedSize() {
-			return 5;
+			return 6;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ST_TA_1;
+				return TypeID.M_ME_TB_1;
 			}
 		}
 
@@ -161,19 +130,16 @@ namespace lib60870.CS101
 			get {
 				return this.timestamp;
 			}
-			set {
-				this.timestamp = value;
-			}
-		}
-			
-		public StepPositionWithCP24Time2a(int ioa, int value, bool isTransient, QualityDescriptor quality, CP24Time2a timestamp) :
-		base(ioa, value, isTransient, quality)
-		{
-			Timestamp = timestamp;
 		}
 
-		internal StepPositionWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
+		public MeasuredValueScaledWithCP24Time2a (int objectAddress, int value, QualityDescriptor quality, CP24Time2a timestamp)
+			: base(objectAddress, value, quality)
+		{
+			this.timestamp = timestamp;
+		}
+
+		internal MeasuredValueScaledWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -181,9 +147,9 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 2; /* VTI + quality*/
+			startIndex += 3; /* scaledValue + QDS */
 
-			/* parse CP24Time2a (time stamp) */
+			/* parse CP56Time2a (time stamp) */
 			timestamp = new CP24Time2a (msg, startIndex);
 		}
 
@@ -195,15 +161,15 @@ namespace lib60870.CS101
 
 	}
 
-	public class StepPositionWithCP56Time2a : StepPositionInformation
+	public class MeasuredValueScaledWithCP56Time2a : MeasuredValueScaled
 	{
 		override public int GetEncodedSize() {
-			return 9;
+			return 10;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_ST_TB_1;
+				return TypeID.M_ME_TE_1;
 			}
 		}
 
@@ -219,19 +185,15 @@ namespace lib60870.CS101
 			get {
 				return this.timestamp;
 			}
-			set {
-				this.timestamp = value;
-			}
 		}
 
-		public StepPositionWithCP56Time2a(int ioa, int value, bool isTransient, QualityDescriptor quality, CP56Time2a timestamp) :
-		base(ioa, value, isTransient, quality)
+		public MeasuredValueScaledWithCP56Time2a (int objectAddress, int value, QualityDescriptor quality, CP56Time2a timestamp)
+			: base(objectAddress, value, quality)
 		{
-			Timestamp = timestamp;
+			this.timestamp = timestamp;
 		}
-
-
-		internal StepPositionWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+			
+		internal MeasuredValueScaledWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -240,9 +202,9 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 2; /* skip VTI + quality*/
+			startIndex += 3; /* scaledValue + QDS */
 
-			/* parse CP24Time2a (time stamp) */
+			/* parse CP56Time2a (time stamp) */
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
@@ -251,7 +213,9 @@ namespace lib60870.CS101
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
 		}
+
 	}
-	
+
+
 }
 

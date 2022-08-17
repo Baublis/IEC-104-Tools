@@ -103,7 +103,7 @@ namespace IEC_104_Tools
 
 			DispatcherTimer timer_logs = new DispatcherTimer();
 			timer_logs.Tick += new EventHandler(timer_Logs_Tick);
-			timer_logs.Interval = new TimeSpan(0, 0, 0, 2, 0);
+			timer_logs.Interval = new TimeSpan(0, 0, 0, 1, 0);
 			timer_logs.Start();
 
 			DispatcherTimer timer_scroll = new DispatcherTimer();
@@ -249,6 +249,7 @@ namespace IEC_104_Tools
 
 		private void clear_DataGrid_Click()
 		{
+			DebugListbox.Items.Clear();
 			pause_Logs.IsChecked = false;
 			num_ID = 0;
 			num_ID_ob = 0;
@@ -532,8 +533,8 @@ namespace IEC_104_Tools
 				con.Connect();
 				true_connected = true;
 				Disconnect_manual = false;
-				Label_N_S_.Content = "N(S): " + con.SendSequenceNumber.ToString();
-				Label_N_R_.Content = "N(R): " + con.ReceiveSequenceNumber.ToString();
+				Label_N_S_.Content = "N(S): " + con.statistics.SendSequenceCounter.ToString();
+				Label_N_R_.Content = "N(R): " + con.statistics.ReceiveSequenceCounter.ToString();
 				timer_con.Interval = TimeSpan.FromMilliseconds(t_con); 
 				timer_con.Start();
 			}
@@ -622,1174 +623,9 @@ namespace IEC_104_Tools
 		/// События протокола:
 		/// </summary>
 		/// 
-		private void Bilding_Command(TypeID typeID, string ioa, string value, string timestamp)
-		{		
-			myCommand = new MyBaseData
-			{
-				ID = "",
-				Time = "",
-				PCI = "",
-				TypeID = typeID.ToString() + " (" + Convert.ToInt32(typeID) + ")",
-				COT = "",
-				OA = "",
-				CA = "",
-				IOA_d = ioa ?? "",
-				IOA_h = "",
-				Values = value ?? "",
-				Timestamp = timestamp ?? "",
-				Quality = "",
-				Description = ""
-			};
-			if (myCommand.IOA_d != "")
-            {
-				int IOA_h = Convert.ToInt32(ioa);
-				myCommand.IOA_h = Convert.ToString(IOA_h, 16).ToUpper();
-			}
-		}
-		private bool ASDU_Sented_Event(object sendSequenceNumber, ASDU asdu)
-		{
-			Thread.Sleep(5);
-			this.Dispatcher.Invoke(() =>
-			{			
-				if (!pause_Logs.IsChecked && myCommand.TypeID.StartsWith(asdu.TypeId.ToString()))
-				{
-					string str_PCI = string.Format(">>> I (R={1},S={0})", sendSequenceNumber.ToString(), con.ReceiveSequenceNumber.ToString());
-					myCommand.ID = num_ID++.ToString();
-					myCommand.Time = DateTime.Now.ToLongTimeString();
-					myCommand.COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")";
-					myCommand.OA = asdu.Oa.ToString();
-					myCommand.CA = asdu.Ca.ToString();
-					myCommand.PCI = str_PCI;
-					main_source.Add(myCommand);				
-				}
-				if (con != null)
-				{
-					Label_UNN_R_.Content = "UNC(R): " + con.unn_r;
-					Label_UNN_S_.Content = "UNC(S): " + con.unn_s;
-					Label_N_R_.Content = "N(R): " + con.ReceiveSequenceNumber.ToString();
-					Label_N_S_.Content = "N(S): " + con.SendSequenceNumber.ToString();
-					if (con.unn_s == aPCIParameters.K)
-						Label_UNN_S_.Background = new SolidColorBrush(Colors.Red);
-					else
-						Label_UNN_S_.Background = null;
-				}
-			});			
-			return true;
-		}
-
-		private bool ASDU_Received_Event(object parameter, ASDU asdu)
-		{
-			this.Dispatcher.Invoke(() =>
-			{
-				if (con != null)
-				{
-					Label_UNN_R_.Content = "UNC(R): " + con.unn_r;
-					Label_UNN_S_.Content = "UNC(S): " + con.unn_s;
-					Label_N_R_.Content = "N(R): " + con.ReceiveSequenceNumber.ToString();
-					Label_N_S_.Content = "N(S): " + con.SendSequenceNumber.ToString();
-					if (con.unn_s == aPCIParameters.K)
-						Label_UNN_S_.Background = new SolidColorBrush(Colors.Red);
-					else
-						Label_UNN_S_.Background = null;
-				}
-			});	
-			old_ASDU = asdu;
-			bool repaly = false;
-			switch (asdu.TypeId)
-			{
-				case TypeID.M_SP_NA_1: // {1}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (SinglePointInformation)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = "",
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_DP_NA_1: // {3}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (DoublePointInformation)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = "",
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_ME_NA_1: // {9}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (MeasuredValueNormalized)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.NormalizedValue.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.NormalizedValue.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.NormalizedValue.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = "",
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.NormalizedValue.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_ME_NB_1: // {11}
-					{
-						for (int ik = 0; ik < asdu.NumberOfElements; ik++)
-						{
-							var val = (MeasuredValueScaled)asdu.GetElement(ik);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && ik == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.ScaledValue.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.ScaledValue.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.ScaledValue.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = "",
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									val.ObjectAddress.ToString();
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.ScaledValue.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_ME_NC_1: // {13}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (MeasuredValueShort)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = "",
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = "",
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_SP_TB_1: // {30}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (SinglePointWithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = val.Timestamp.ToString(),
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_DP_TB_1: // {31}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (DoublePointWithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = val.Timestamp.ToString(),
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_BO_TB_1: // {33}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (Bitstring32WithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = val.Timestamp.ToString(),
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_ME_TF_1: // {36}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (MeasuredValueShortWithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = val.Timestamp.ToString(),
-												Quality = val.Quality.ToString(),
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = val.Quality.ToString(),
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_IT_TB_1: // {37}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (IntegratedTotalsWithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.BCR.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = "",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.BCR.Value.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = "",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-								if (object_source.Count > 0)
-								{
-									for (int g = 0; g < object_source.Count; g++)
-									{
-										MyBaseData item = object_source[g];
-										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
-										{
-											repaly = true;
-											object_source[g] = new MyBaseData
-											{
-												ID = object_source[g].ID,
-												CA = asdu.Ca.ToString(),
-												IOA_d = val.ObjectAddress.ToString(),
-												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-												Values = val.BCR.Value.ToString(),
-												Time = DateTime.Now.ToLongTimeString(),
-												Timestamp = val.Timestamp.ToString(),
-												Quality = "",
-												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
-												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-											};
-										}
-
-									}
-								}
-								if (!repaly)
-								{
-									object_source.Add(new MyBaseData
-									{
-										ID = num_ID_ob++.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										Values = val.BCR.Value.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = "",
-										Cnt = "1",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.C_SC_TA_1: // {58}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (SingleCommandWithCP56Time2a)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked && i == 0)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.State.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = "",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
-									});
-								}
-								else if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = "",
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = " ",
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = "",
-										OA = "",
-										CA = "",
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = val.State.ToString(),
-										Timestamp = val.Timestamp.ToString(),
-										Quality = "",
-										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
-									});
-								}
-							}));
-						}
-					}
-					break;
-				case TypeID.M_EI_NA_1: // {70}
-					{
-						for (int i = 0; i < asdu.NumberOfElements; i++)
-						{
-							var val = (EndOfInitialization)asdu.GetElement(i);
-							this.Dispatcher.Invoke((Action)(() =>
-							{
-								if (!pause_Logs.IsChecked)
-								{
-									main_source.Add(new MyBaseData
-									{
-										ID = num_ID++.ToString(),
-										Time = DateTime.Now.ToLongTimeString(),
-										PCI = Bilding_PCI(asdu),
-										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-										OA = asdu.Oa.ToString(),
-										CA = asdu.Ca.ToString(),
-										IOA_d = val.ObjectAddress.ToString(),
-										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
-										Values = "",
-										Timestamp = "",
-										Quality = "",
-										Description = ""
-									});
-								}
-							}));
-						}
-					}
-					break;
-				default:
-					{
-						this.Dispatcher.Invoke((Action)(() =>
-						{
-							if (!pause_Logs.IsChecked)
-							{
-								main_source.Add(new MyBaseData
-								{
-									ID = num_ID++.ToString(),
-									Time = DateTime.Now.ToLongTimeString(),
-									PCI = Bilding_PCI(asdu),
-									TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
-									COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
-									OA = asdu.Oa.ToString(),
-									CA = asdu.Ca.ToString(),
-									IOA_d = "",
-									IOA_h = "",
-									Values = "",
-									Timestamp = "",
-									Quality = "",
-									Description = ""
-								});
-							}
-						}));
-					}
-					break;
-			}
-			return true;
-		}
-		
-		private bool RAW_Message_Sented_Event(object parameter, byte[] message, int messageSize)
-		{
-			this.Dispatcher.BeginInvoke((Action)(() =>
-			{			
-				if (!pause_Logs.IsChecked)
-				{
-					RAW_Massege(message, messageSize, "TX: ");
-				}
-			}));
-			return true;
-		}
-
-		private bool RAW_Message_Receiv_Event(object parameter, byte[] message, int messageSize)
-		{
-			this.Dispatcher.BeginInvoke((Action)(() =>
-			{
-				if (!pause_Logs.IsChecked)
-				{
-					RAW_Massege(message, messageSize, "RX: ");
-				}
-			}));
-
-			return true;
-		}	
-	
 		private void Connection_Event(object parameter, ConnectionEvent connectionEvent)
 		{
-			this.Dispatcher.BeginInvoke((Action)(() =>
-			{
-				if (con != null)
-				{
-					Label_UNN_R_.Content = "UNC(R): " + con.unn_r;
-					Label_UNN_S_.Content = "UNC(S): " + con.unn_s;
-					Label_N_R_.Content = "N(R): " + con.ReceiveSequenceNumber.ToString();
-					Label_N_S_.Content = "N(S): " + con.SendSequenceNumber.ToString();
-					if (con.unn_s == aPCIParameters.K && con.connecting)
-						Label_UNN_S_.Background = new SolidColorBrush(Colors.Red);
-					else
-						Label_UNN_S_.Background = null;
-				}
-				else
-					Label_UNN_S_.Background = null;
-			}));
+			Monitor_Statistic();
 			switch (connectionEvent)
 			{
 				case ConnectionEvent.OPENED:
@@ -1910,7 +746,7 @@ namespace IEC_104_Tools
 					}));
 					true_connected = false;
 					break;
-				case ConnectionEvent.SERV_CLOSED:					
+				case ConnectionEvent.SERV_CLOSED:
 					this.Dispatcher.BeginInvoke((Action)(() =>
 					{
 						con_State.Background = new SolidColorBrush(Colors.LightGray);
@@ -2199,7 +1035,7 @@ namespace IEC_104_Tools
 					{
 						if (!pause_Logs.IsChecked && outMassage.IsChecked)
 						{
-							string str_PCI = string.Format(">>> S ({0})", con.ReceiveSequenceNumber.ToString());
+							string str_PCI = string.Format(">>> S ({0})", con.statistics.ReceiveSequenceCounter.ToString());
 							main_source.Add(new MyBaseData
 							{
 								ID = num_ID++.ToString(),
@@ -2246,23 +1082,1373 @@ namespace IEC_104_Tools
 					break;
 			}
 		}
+	
+		private bool ASDU_Sented_Event(object sendSequenceNumber, ASDU asdu)
+		{
+			Monitor_Statistic();
+			Thread.Sleep(5);
+			this.Dispatcher.Invoke(() =>
+			{			
+				if (!pause_Logs.IsChecked && myCommand.TypeID.StartsWith(asdu.TypeId.ToString()))
+				{
+					string str_PCI = string.Format(">>> I (R={1},S={0})", ((Int32)sendSequenceNumber-1).ToString(), con.statistics.ReceiveSequenceCounter.ToString());
+					myCommand.ID = num_ID++.ToString();
+					myCommand.Time = DateTime.Now.ToLongTimeString();
+					myCommand.COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")";
+					myCommand.OA = asdu.Oa.ToString();
+					myCommand.CA = asdu.Ca.ToString();
+					myCommand.PCI = str_PCI;
+					main_source.Add(myCommand);				
+				}			
+			});			
+			return true;
+		}
 
-		private void Debug_Event(string message)
-        {
-			this.Dispatcher.BeginInvoke((Action)(() => DebugListbox.Items.Add(message)));
+		private bool ASDU_Received_Event(object parameter, ASDU asdu)
+		{
+			Monitor_Statistic();
+			old_ASDU = asdu;
+			bool repaly = false;
+
+			switch (asdu.TypeId)
+			{
+				case TypeID.M_SP_NA_1: // {1}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (SinglePointInformation)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+                        }
+					}
+					break;
+				case TypeID.M_DP_NA_1: // {3}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (DoublePointInformation)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_BO_NA_1: // {7}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (Bitstring32)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_ME_NA_1: // {9}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (MeasuredValueNormalized)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+                                if (!pause_Logs.IsChecked && i == 0)
+                                {
+                                    main_source.Add(new MyBaseData
+                                    {
+                                        ID = num_ID++.ToString(),
+                                        Time = DateTime.Now.ToLongTimeString(),
+                                        PCI = Bilding_PCI(asdu),
+                                        TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+                                        COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+                                        OA = asdu.Oa.ToString(),
+                                        CA = asdu.Ca.ToString(),
+                                        IOA_d = val.ObjectAddress.ToString(),
+                                        IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+                                        Values = val.NormalizedValue.ToString(),
+                                        Timestamp = "",
+                                        Quality = val.Quality.ToString(),
+                                        Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+                                    });
+                                }
+                                else if (!pause_Logs.IsChecked)
+                                {
+                                    main_source.Add(new MyBaseData
+                                    {
+                                        ID = "",
+                                        Time = DateTime.Now.ToLongTimeString(),
+                                        PCI = " ",
+                                        TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+                                        COT = "",
+                                        OA = "",
+                                        CA = "",
+                                        IOA_d = val.ObjectAddress.ToString(),
+                                        IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+                                        Values = val.NormalizedValue.ToString(),
+                                        Timestamp = "",
+                                        Quality = val.Quality.ToString(),
+                                        Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+                                    });
+                                } 
+                            });
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.NormalizedValue.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.NormalizedValue.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_ME_NB_1: // {11}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (MeasuredValueScaled)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.ScaledValue.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.ScaledValue.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.ScaledValue.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									val.ObjectAddress.ToString();
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.ScaledValue.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_ME_NC_1: // {13}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (MeasuredValueShort)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_IT_NA_1: // {15}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (IntegratedTotals)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.BCR.Value.ToString(),
+										Timestamp = "",
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.BCR.Value.ToString(),
+										Timestamp = "",
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.BCR.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = "",
+												Quality = "",
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.BCR.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = "",
+										Quality = "",
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_SP_TB_1: // {30}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (SinglePointWithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = val.Timestamp.ToString(),
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_DP_TB_1: // {31}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (DoublePointWithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = val.Timestamp.ToString(),
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_BO_TB_1: // {33}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (Bitstring32WithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = val.Timestamp.ToString(),
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_ME_TF_1: // {36}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (MeasuredValueShortWithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = val.Timestamp.ToString(),
+												Quality = val.Quality.ToString(),
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = val.Quality.ToString(),
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;
+				case TypeID.M_IT_TB_1: // {37}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (IntegratedTotalsWithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.BCR.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.BCR.Value.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (object_source.Count > 0)
+								{
+									for (int g = 0; g < object_source.Count; g++)
+									{
+										MyBaseData item = object_source[g];
+										if (item.IOA_d.PadRight(6) == val.ObjectAddress.ToString().PadRight(6) && item.CA.PadRight(3) == asdu.Ca.ToString().PadRight(3))
+										{
+											repaly = true;
+											object_source[g] = new MyBaseData
+											{
+												ID = object_source[g].ID,
+												CA = asdu.Ca.ToString(),
+												IOA_d = val.ObjectAddress.ToString(),
+												IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+												COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+												TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+												Values = val.BCR.Value.ToString(),
+												Time = DateTime.Now.ToLongTimeString(),
+												Timestamp = val.Timestamp.ToString(),
+												Quality = "",
+												Cnt = (Convert.ToInt16(object_source[g].Cnt) + 1).ToString(),
+												Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+											};
+										}
+
+									}
+								}
+								if (!repaly)
+								{
+									object_source.Add(new MyBaseData
+									{
+										ID = num_ID_ob++.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										Values = val.BCR.Value.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = "",
+										Cnt = "1",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+							});
+						}
+					}
+					break;			
+				case TypeID.M_EI_NA_1: // {70}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (EndOfInitialization)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = "",
+										Timestamp = "",
+										Quality = "",
+										Description = ""
+									});
+								}
+							});
+						}
+					}
+					break;
+
+				case TypeID.C_SC_TA_1: // {58}
+					{
+						for (int i = 0; i < asdu.NumberOfElements; i++)
+						{
+							var val = (SingleCommandWithCP56Time2a)asdu.GetElement(i);
+
+							this.Dispatcher.Invoke(() =>
+							{
+								if (!pause_Logs.IsChecked && i == 0)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = num_ID++.ToString(),
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = Bilding_PCI(asdu),
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+										OA = asdu.Oa.ToString(),
+										CA = asdu.Ca.ToString(),
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.State.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString())
+									});
+								}
+								else if (!pause_Logs.IsChecked)
+								{
+									main_source.Add(new MyBaseData
+									{
+										ID = "",
+										Time = DateTime.Now.ToLongTimeString(),
+										PCI = " ",
+										TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+										COT = "",
+										OA = "",
+										CA = "",
+										IOA_d = val.ObjectAddress.ToString(),
+										IOA_h = Convert.ToString(val.ObjectAddress, 16).ToUpper(),
+										Values = val.State.ToString(),
+										Timestamp = val.Timestamp.ToString(),
+										Quality = "",
+										Description = Bilding_Description(val.ObjectAddress.ToString(), asdu.Ca.ToString()),
+									});
+								}
+							});
+						}
+					}
+					break;
+				default:
+					{
+						this.Dispatcher.Invoke(() =>
+						{
+							if (!pause_Logs.IsChecked)
+							{
+								main_source.Add(new MyBaseData
+								{
+									ID = num_ID++.ToString(),
+									Time = DateTime.Now.ToLongTimeString(),
+									PCI = Bilding_PCI(asdu),
+									TypeID = asdu.TypeId.ToString() + " (" + Convert.ToInt32(asdu.TypeId) + ")",
+									COT = asdu.Cot.ToString() + " (" + Convert.ToInt32(asdu.Cot) + ")",
+									OA = asdu.Oa.ToString(),
+									CA = asdu.Ca.ToString(),
+									IOA_d = "",
+									IOA_h = "",
+									Values = "",
+									Timestamp = "",
+									Quality = "",
+									Description = ""
+								});
+							}
+						});
+					}
+					break;
+			}
+
+			return true;
+		}
+		
+		private bool RAW_Message_Sented_Event(object parameter, byte[] message, int messageSize)
+		{
+			this.Dispatcher.BeginInvoke((Action)(() =>
+			{			
+				if (!pause_Logs.IsChecked)
+				{
+					RAW_Massege(message, messageSize, "TX: ");
+				}
+			}));
+			return true;
+		}
+
+		private bool RAW_Message_Receiv_Event(object parameter, byte[] message, int messageSize)
+		{
+			this.Dispatcher.BeginInvoke((Action)(() =>
+			{
+				if (!pause_Logs.IsChecked)
+				{
+					RAW_Massege(message, messageSize, "RX: ");
+				}
+			}));
+
+			return true;
 		}
 
 		private void RAW_Massege(byte[] message, int messageSize, string convertedMessage)
 		{
 			for (int y = 0; y < messageSize; y++)
-            {
+			{
 				convertedMessage = convertedMessage.Insert(convertedMessage.Length, Convert.ToString(message[y], 16));
 				convertedMessage = convertedMessage + " ";
-			}			
+			}
 			convertedMessage = convertedMessage.ToUpper();
 
 			raw_source.Add(new MyBaseData
-			{			
+			{
 				ID = num_ID_raw++.ToString(),
 				Time = DateTime.Now.ToLongTimeString(),
 				PCI = "",
@@ -2281,6 +2467,11 @@ namespace IEC_104_Tools
 			});
 		}
 
+		private void Debug_Event(string message)
+        {
+			this.Dispatcher.BeginInvoke((Action)(() => DebugListbox.Items.Add(message)));
+		}
+
 		private string Bilding_PCI(ASDU asdu)
 		{
 			uint a;
@@ -2291,8 +2482,8 @@ namespace IEC_104_Tools
 			a = Convert.ToUInt32(asdu.RAW_1[4]) >> 1;
 			b = Convert.ToUInt32(asdu.RAW_1[5]) << 8;
 			uint r = a + b;
-			string str_PCI = string.Format("<<< I (R={0},S={1})", s.ToString(), r.ToString());
-			string pci_str = "<<< I (S=" + s.ToString() + ",R=" + r.ToString() + ")";
+			//string str_PCI = string.Format("<<< I (R={0},S={1})", s.ToString(), r.ToString());
+			string str_PCI = string.Format("<<< I (R={0},S={1})", r.ToString(), s.ToString());
 			return str_PCI;
 		}
 
@@ -2305,6 +2496,51 @@ namespace IEC_104_Tools
 						if (IOA == str.Split(' ')[1] && CA == str.Split(' ')[0])
 							descr = str.Split(' ')[2];
 			return descr;
+		}
+
+		private void Bilding_Command(TypeID typeID, string ioa, string value, string timestamp)
+		{
+			myCommand = new MyBaseData
+			{
+				ID = "",
+				Time = "",
+				PCI = "",
+				TypeID = typeID.ToString() + " (" + Convert.ToInt32(typeID) + ")",
+				COT = "",
+				OA = "",
+				CA = "",
+				IOA_d = ioa ?? "",
+				IOA_h = "",
+				Values = value ?? "",
+				Timestamp = timestamp ?? "",
+				Quality = "",
+				Description = ""
+			};
+			if (myCommand.IOA_d != "")
+			{
+				int IOA_h = Convert.ToInt32(ioa);
+				myCommand.IOA_h = Convert.ToString(IOA_h, 16).ToUpper();
+			}
+		}
+
+		private void Monitor_Statistic()
+        {
+			this.Dispatcher.BeginInvoke((Action)(() =>
+			{
+				if (con != null)
+				{
+					Label_UNN_R_.Content = "UNC(R): " + con.statistics.UnconfirmedReceiveSequenceCounter;
+					Label_UNN_S_.Content = "UNC(S): " + con.statistics.UnconfirmedSendSequenceCounter;
+					Label_N_R_.Content = "N(R): " + con.statistics.ReceiveSequenceCounter;
+					Label_N_S_.Content = "N(S): " + con.statistics.SendSequenceCounter;
+					if (con.statistics.UnconfirmedSendSequenceCounter == aPCIParameters.K && con.connecting)
+						Label_UNN_S_.Background = new SolidColorBrush(Colors.Red);
+					else
+						Label_UNN_S_.Background = null;
+				}
+				else
+					Label_UNN_S_.Background = null;
+			}));
 		}
 
 
@@ -2371,6 +2607,39 @@ namespace IEC_104_Tools
 
 		async void timer_Logs_Tick(object sender, EventArgs e)
 		{
+			if (con != null)
+            {
+				string buf;
+				this.Dispatcher.Invoke(() => 
+				{
+					buf = con.statistics.TimerT1Counter.ToString();
+					if (con.statistics.TimerT1Counter > 1000)
+					{
+						buf = buf.Remove(buf.Length - 3);
+						TimerT1_Counter.Content = "T1: " + buf;
+					}					
+					else
+						TimerT1_Counter.Content = "T1: 0";
+
+					buf = con.statistics.TimerT2Counter.ToString();
+					if (con.statistics.TimerT2Counter > 1000)
+					{
+						buf = buf.Remove(buf.Length - 3);
+						TimerT2_Counter.Content = "T2: " + buf;
+					}
+					else
+						TimerT2_Counter.Content = "T2: 0";
+					buf = con.statistics.TimerT3Counter.ToString();
+					if (con.statistics.TimerT3Counter > 1000)
+					{
+						buf = buf.Remove(buf.Length - 3);
+						TimerT3_Counter.Content = "T3: " + buf;
+					}
+					else
+						TimerT3_Counter.Content = "T3: 0";
+				});
+			}
+			
 			if (auto_logs.IsChecked)
             {
 				var task0 = Task.Run(task_logs_to_file);
@@ -2579,7 +2848,7 @@ namespace IEC_104_Tools
 		{
 			if (true_connected)
 			{
-				con.SendStartDT();
+				con.SendStartDT_ACT();
 			}
 			else
 				MessageBox.Show("Нет связи", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -2589,7 +2858,7 @@ namespace IEC_104_Tools
 		{
 			if (true_connected)
 			{
-				con.SendStopDT();
+				con.SendStopDT_ACT();
 			}
 			else
 				MessageBox.Show("Нет связи", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);

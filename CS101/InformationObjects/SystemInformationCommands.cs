@@ -21,7 +21,7 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 	/// <summary>
 	/// Квалификатор допроса
@@ -100,6 +100,13 @@ namespace lib60870.CS101
 
 	public class InterrogationCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "InterrogationCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}
@@ -153,6 +160,13 @@ namespace lib60870.CS101
 		
 	public class CounterInterrogationCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "CounterInterrogationCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}
@@ -211,6 +225,13 @@ namespace lib60870.CS101
 
 	public class ReadCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ReadCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 0;
 		}
@@ -239,7 +260,14 @@ namespace lib60870.CS101
 
     public class TestCommandWithCP56Time2a : InformationObject
     {
-        private CP56Time2a time;
+		override public string Name
+		{
+			get
+			{
+				return "TestCommandWithCP56Time2a";
+			}
+		}
+		private CP56Time2a time;
 
         private ushort tsc;
 
@@ -334,6 +362,13 @@ namespace lib60870.CS101
 
 	public class TestCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "TestCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 2;
 		}
@@ -388,6 +423,13 @@ namespace lib60870.CS101
 
 	public class ClockSynchronizationCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ClockSynchronizationCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 7;
 		}
@@ -441,6 +483,13 @@ namespace lib60870.CS101
 
 	public class ResetProcessCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "ResetProcessCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}
@@ -498,6 +547,13 @@ namespace lib60870.CS101
 
 	public class DelayAcquisitionCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "DelayAcquisitionCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 2;
 		}

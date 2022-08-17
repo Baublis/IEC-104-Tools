@@ -152,24 +152,32 @@ namespace lib60870.CS104
     /// </summary>
     public class ConnectionStatistics
     {
-
+        private int unconfirmedSendSequenceCounter = 0;
+        private int гnconfirmedReceiveSequenceCounter = 0;
         private int sentMsgCounter = 0;
         private int rcvdMsgCounter = 0;
         private int rcvdTestFrActCounter = 0;
-        private int rcvdTestFrConCounter = 0;
-
+        private int rcvdTestFrConCounter = 0;     
+        private int sendSequenceNumber = 0;
+        private int receiveSequenceNumber = 0;
+        private UInt64 timerT1Counter = 0;
+        private UInt64 timerT2Counter = 0;
+        private UInt64 timerT3Counter = 0;
         internal void Reset()
         {
+            unconfirmedSendSequenceCounter = 0;
+            гnconfirmedReceiveSequenceCounter = 0;
             sentMsgCounter = 0;
             rcvdMsgCounter = 0;
             rcvdTestFrActCounter = 0;
             rcvdTestFrConCounter = 0;
+            sendSequenceNumber = 0;
+            receiveSequenceNumber = 0;
         }
 
-		/// <summary>
-		/// Gets or sets the sent message counter.
-		/// </summary>
-		/// <value>The sent message counter.</value>
+        /// <summary>
+        /// Счетчик отправленных сообщений
+        /// </summary>
         public int SentMsgCounter
         {
             get
@@ -183,9 +191,8 @@ namespace lib60870.CS104
         }
 
 		/// <summary>
-		/// Gets or sets the received message counter.
+		/// Счетчик полученных сообщений
 		/// </summary>
-		/// <value>The received message counter.</value>
         public int RcvdMsgCounter
         {
             get
@@ -199,9 +206,8 @@ namespace lib60870.CS104
         }
 
         /// <summary>
-        /// Counter for the TEST_FR_ACT messages received.
+        /// Счетчик полученных TEST_FR ACT
         /// </summary>
-        /// <value>The TEST_FR_ACT counter.</value>
         public int RcvdTestFrActCounter
         {
             get
@@ -215,9 +221,8 @@ namespace lib60870.CS104
         }
 
         /// <summary>
-        /// Counter for the TEST_FR_CON messages received.
+        /// Счетчик полученных TEST_FR CON
         /// </summary>
-        /// <value>The TEST_FR_CON counter.</value>
         public int RcvdTestFrConCounter
         {
             get
@@ -227,6 +232,102 @@ namespace lib60870.CS104
             internal set
             {
                 this.rcvdTestFrConCounter = value;
+            }
+        }
+
+        /// <summary>
+        /// Счетчик отправленных неподтвержденных ASDU
+        /// </summary>
+        public int UnconfirmedSendSequenceCounter
+        {
+           get
+            {
+                return this.unconfirmedSendSequenceCounter;
+            }
+           internal set
+            {
+                this.unconfirmedSendSequenceCounter = value;
+            }
+        }
+
+        /// <summary>
+        /// Счетчик полученных неподтвержденных ASDU
+        /// </summary>
+        public int UnconfirmedReceiveSequenceCounter
+        {
+            get
+            {
+                return this.гnconfirmedReceiveSequenceCounter;
+            }
+            internal set
+            {
+                this.гnconfirmedReceiveSequenceCounter = value;
+            }
+        }
+
+        /// <summary>
+        /// Счетчик отправленных ASDU - N(S).
+        /// </summary>
+        public int SendSequenceCounter
+        {
+            get
+            {
+                return this.sendSequenceNumber;
+            }
+            set
+            {
+                this.sendSequenceNumber = value;
+            }
+        }
+
+        /// <summary>
+        /// Счетчик полученных ASDU - N(R).
+        /// </summary>
+        public int ReceiveSequenceCounter
+        {
+            get
+            {
+                return this.receiveSequenceNumber;
+            }
+            set
+            {
+                this.receiveSequenceNumber = value;
+            }
+        }
+
+        public UInt64 TimerT1Counter
+        {
+            get
+            {
+                return this.timerT1Counter;
+            }
+            set
+            {
+                this.timerT1Counter = value;
+            }
+        }
+
+        public UInt64 TimerT2Counter
+        {
+            get
+            {
+                return this.timerT2Counter;
+            }
+            set
+            {
+                this.timerT2Counter = value;
+            }
+        }
+
+        public UInt64 TimerT3Counter
+        {
+            get
+            {
+                return this.timerT3Counter;
+            }
+            set
+            {
+                this.timerT3Counter = value;
             }
         }
     }
@@ -256,8 +357,6 @@ namespace lib60870.CS104
     /// </summary>
     public class Connection : Master
     {
-
-
         static byte[] STARTDT_ACT_MSG = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
 
         static byte[] STARTDT_CON_MSG = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
@@ -270,49 +369,62 @@ namespace lib60870.CS104
 
         static byte[] TESTFR_CON_MSG = new byte[] { 0x68, 0x04, 0x83, 0x00, 0x00, 0x00 };
 
-        private int sendSequenceNumber;
-        private int receiveSequenceNumber;
 
         private UInt64 uMessageTimeout = 0;
 
         /**********************************************/
-        /* data structure for k-size sent ASDU buffer */
+
+        /// <summary>
+        /// Структура, которая формирует очередь для отпрвки ASDU (k - buffer)
+        /// </summary>
         private struct SentASDU
         {
-            public long sentTime; // required for T1 timeout
+            /// <summary>
+            /// Текущее время, когда сформирована ASDU. Точка отчета для тайм-аута T1
+            /// </summary>
+            public long sentTime;
+
+            /// <summary>
+            /// Номер отправляемой ASDU 
+            /// </summary>
             public int seqNo;
         }
 
-        private int maxSentASDUs; /* maximum number of ASDU to be sent without confirmation - parameter k */
-        private int oldestSentASDU = -1; /* index of oldest entry in k-buffer */
-        private int newestSentASDU = -1; /* index of newest entry in k-buffer */
-        private SentASDU[] sentASDUs = null; /* the k-buffer */
+        /// <summary>
+        /// Максимальное количество отправленных ASDU, которое не требует подверждение (параметр k)
+        /// </summary>
+        private int maxSentASDUs;
+
+        /// <summary>
+        /// Индекс посредней ASDU, зашедшей в k-buffer
+        /// </summary>
+        private int oldestSentASDU = -1;
+
+        /// <summary>
+        /// Индекс посредней ASDU, зашедшей в k-buffer
+        /// </summary>
+        private int newestSentASDU = -1;
+
+        /// <summary>
+        /// Определение k-buffer
+        /// </summary>
+        private SentASDU[] sentASDUs = null; 
 
         /**********************************************/
 
         private bool checkSequenceNumbers = true;
 
         private Queue<ASDU> waitingToBeSent = null;
-        private bool useSendMessageQueue = true;
+        private bool useSendMessageQueue = true;        /* определяет существование очереди отправки сообщений (k - buffer) */
 
         private UInt64 nextT3Timeout;
         private int outStandingTestFRConMessages = 0;
 
         private Thread workerThread = null;
 
-        /// <summary>
-        /// Количество полученных неподтвержденных сообщений
-        /// </summary>
-        private int unconfirmedReceivedIMessages;
-        public int unn_r => unconfirmedReceivedIMessages;
-
-        private int unconfirmedSentedIMessages;
-
-        public int unn_s => unconfirmedSentedIMessages;
-
-        /* T2 timeout handling */
-        private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */
+        private long lastConfirmationTime;              /* метка времени, когда было отправлено последнее подтверждающее сообщение */
         private bool timeoutT2Triggered = false;
+
         private bool fullbuf_K = false;
         public bool fullbuf_K_out => fullbuf_K;
 
@@ -329,7 +441,7 @@ namespace lib60870.CS104
 
         private bool running = false;
         public bool connecting = false;
-        //private bool socketError;
+
         private bool auto = false;
 
         public bool socketError;
@@ -364,23 +476,6 @@ namespace lib60870.CS104
             }
         }
 
-        /// <summary>
-        /// Получает или задает порядковый номер отправки N(S).
-        /// ВНИМАНИЕ: Задавать можно только для тестов!
-        /// </summary>
-        /// <value>Порядковый номер отправки N(S)</value>
-        public int SendSequenceNumber
-        {
-            get
-            {
-                return this.sendSequenceNumber;
-            }
-            set
-            {
-                this.sendSequenceNumber = value;
-            }
-        }
-
         protected bool CheckSequenceNumbers
         {
             get
@@ -390,23 +485,6 @@ namespace lib60870.CS104
             set
             {
                 checkSequenceNumbers = value;
-            }
-        }
-
-        /// <summary>
-        /// Получает или задает порядковый номер приема N(S).
-        /// ВНИМАНИЕ: Задавать можно только для тестов!
-        /// </summary>
-        /// <value>Порядковый номер приема N(S)</value>
-        public int ReceiveSequenceNumber
-        {
-            get
-            {
-                return this.receiveSequenceNumber;
-            }
-            set
-            {
-                this.receiveSequenceNumber = value;
             }
         }
 
@@ -439,10 +517,6 @@ namespace lib60870.CS104
 
         private void ResetConnection()
         {
-            sendSequenceNumber = 0;
-            receiveSequenceNumber = 0;
-            unconfirmedReceivedIMessages = 0;
-            unconfirmedSentedIMessages = 0;
             lastConfirmationTime = System.Int64.MaxValue;
             timeoutT2Triggered = false;
             outStandingTestFRConMessages = 0;
@@ -501,8 +575,8 @@ namespace lib60870.CS104
             msg[1] = 0x04;
             msg[2] = 0x01;
             msg[3] = 0;
-            msg[4] = (byte)((receiveSequenceNumber % 128) * 2);
-            msg[5] = (byte)(receiveSequenceNumber / 128);
+            msg[4] = (byte)((statistics.ReceiveSequenceCounter % 128) * 2);
+            msg[5] = (byte)(statistics.ReceiveSequenceCounter / 128);
 
             netStream.Write(msg, 0, msg.Length);
 
@@ -532,7 +606,7 @@ namespace lib60870.CS104
 
                     if (oldestSentASDU == -1)
                     { /* если k-буфер пуст */
-                        if (seqNo == sendSequenceNumber)
+                        if (seqNo == statistics.SendSequenceCounter)
                             seqNoIsValid = true;
                     }
                     else
@@ -607,9 +681,9 @@ namespace lib60870.CS104
             if (oldestSentASDU == -1)
                 return false;
 
-            int newIndex = (newestSentASDU + 1) % maxSentASDUs;
-            //unconfirmedSentedIMessages = newIndex;
-            if (newIndex == oldestSentASDU)
+            //int newIndex = (newestSentASDU + 1) % maxSentASDUs;
+
+            if (statistics.UnconfirmedSendSequenceCounter >= maxSentASDUs)
             {
                 fullbuf_K = true;
                 return true;
@@ -635,41 +709,43 @@ namespace lib60870.CS104
             /* set size field */
             buffer[1] = (byte)(msgSize - 2);
 
-            buffer[2] = (byte)((sendSequenceNumber % 128) * 2);
-            buffer[3] = (byte)(sendSequenceNumber / 128);
+            buffer[2] = (byte)((statistics.SendSequenceCounter % 128) * 2);
+            buffer[3] = (byte)(statistics.SendSequenceCounter / 128);
 
-            buffer[4] = (byte)((receiveSequenceNumber % 128) * 2);
-            buffer[5] = (byte)(receiveSequenceNumber / 128);
+            buffer[4] = (byte)((statistics.ReceiveSequenceCounter % 128) * 2);
+            buffer[5] = (byte)(statistics.ReceiveSequenceCounter / 128);
 
             if (running)
             {
                 netStream.Write(buffer, 0, msgSize);
 
-                sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
+                statistics.SendSequenceCounter = (statistics.SendSequenceCounter + 1) % 32768;
                 statistics.SentMsgCounter++;
 
-                unconfirmedReceivedIMessages = 0;
+                statistics.UnconfirmedReceiveSequenceCounter = 0;
                 timeoutT2Triggered = false;
 
                 if (sentMessageHandler != null)
                 {
-                    sentMessageHandler(sendSequenceNumber, buffer, msgSize);
+                    sentMessageHandler(statistics.SendSequenceCounter, buffer, msgSize);
                 }
 
-                //return sendSequenceNumber;
+                //return statistics.SendSequenceNumber;
             }
             else
             {
                 if (lastException != null)
                 {
+                    DebugLog(lastException.Message);
                     throw new ConnectionException(lastException.Message, lastException);
                 }                  
                 else
                 {
+                    DebugLog("Связь потерена");
                     throw new ConnectionException("not connected", new SocketException(10057));
                 }                
             }
-            return sendSequenceNumber;
+            return statistics.SendSequenceCounter;
         }
 
         private void PrintSendBuffer()
@@ -718,8 +794,6 @@ namespace lib60870.CS104
                     currentIndex = (newestSentASDU + 1) % maxSentASDUs;
                     
                 }
-
-                //unconfirmedSentedIMessages = currentIndex + 1;
                 
 
                 sentASDUs[currentIndex].seqNo = SendIMessage(asdu);
@@ -730,7 +804,7 @@ namespace lib60870.CS104
 
                 PrintSendBuffer();
                 if (asduSentedHandler != null)
-                    asduSentedHandler(sendSequenceNumber, asdu);
+                    asduSentedHandler(statistics.SendSequenceCounter, asdu);
             }
         }
 
@@ -740,6 +814,7 @@ namespace lib60870.CS104
 
             if (running == false)
             {
+                DebugLog("Связь потерена");
                 throw new ConnectionException("connection lost");
             }
             else
@@ -757,8 +832,8 @@ namespace lib60870.CS104
                         {
                             break;
                         }
-                        else if(unconfirmedSentedIMessages < maxSentASDUs)
-                            unconfirmedSentedIMessages++;
+                        else if(statistics.UnconfirmedSendSequenceCounter < maxSentASDUs)
+                            statistics.UnconfirmedSendSequenceCounter++;
 
                         ASDU asdu = waitingToBeSent.Dequeue();
 
@@ -776,6 +851,7 @@ namespace lib60870.CS104
             catch (Exception)
             {
                 running = false;
+                DebugLog("Связь потерена");
                 throw new ConnectionException("connection lost");
             }
 
@@ -789,7 +865,8 @@ namespace lib60870.CS104
 
                 if (running == false)
                 {
-                    throw new ConnectionException("not connected", new SocketException(10057));
+                    DebugLog("Связь потерена");
+                    throw new ConnectionException("Связь потерена", new SocketException(10057));
                 }                                       
                 else
                 {
@@ -807,8 +884,8 @@ namespace lib60870.CS104
 
                         if (IsSentBufferFull())
                         {
-
-                            throw new ConnectionException("Flow control congestion. Try again later.");
+                            DebugLog("Перегрузка управления потоком. Попробуйте позже.");
+                            throw new ConnectionException("Перегрузка управления потоком. Попробуйте позже.");
                         }   
                         else
                             SendIMessageAndUpdateSentASDUs(asdu);
@@ -1096,7 +1173,7 @@ namespace lib60870.CS104
         /// <summary>
         /// Начать передачу данных по этому соединению. Отправить STARTDT_ACT
         /// </summary>
-        public void SendStartDT()
+        public void SendStartDT_ACT()
         {
             if (running)
             {
@@ -1113,7 +1190,7 @@ namespace lib60870.CS104
         /// <summary>
         /// Остановить передачу данных по этому соединению. Отправить STOPDT_ACT
         /// </summary>
-        public void SendStopDT()
+        public void SendStopDT_ACT()
         {
             if (running)
             {
@@ -1159,9 +1236,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
+                UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
+
                 netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
 
                 statistics.SentMsgCounter++;
+
+                uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
+
+                outStandingTestFRConMessages++;
 
                 sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_ACT_MSG, 6);
 
@@ -1202,6 +1285,7 @@ namespace lib60870.CS104
             }          
             if (socketError)
             {
+                DebugLog(lastException.Message);
                 throw new ConnectionException(lastException.Message, lastException);
             }
                 
@@ -1244,12 +1328,12 @@ namespace lib60870.CS104
             {
                 if (running)
                 {
-                    /* WSAEISCONN - Socket is already connected */
+                    DebugLog("Неудачная попытка соединения. Соединение было устнаолвено раньше.");
                     throw new ConnectionException("already connected", new SocketException(10056)); 
                 }                   
                 else
                 {
-                    /* WSAEALREADY - Operation already in progress */
+                    DebugLog("Неудачная попытка соединения. Соединение устанавливется.");
                     throw new ConnectionException("already connecting", new SocketException(10037)); 
                 }                
             }
@@ -1297,9 +1381,15 @@ namespace lib60870.CS104
         private bool checkConfirmTimeout(long currentTime)
         {
             if ((currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000))
+            {
+                //statistics.TimerT2Counter = (UInt64)(apciParameters.T2 * 1000);
                 return true;
+            }             
             else
+            {
+                statistics.TimerT2Counter = (UInt64)(apciParameters.T2 * 1000 - currentTime + lastConfirmationTime);
                 return false;
+            }             
         }
 
         /// <summary>
@@ -1311,9 +1401,7 @@ namespace lib60870.CS104
 
             /* I format frame */
             if ((buffer[2] & 1) == 0)
-            { 
-                
-
+            {              
                 if (timeoutT2Triggered == false)
                 {
                     timeoutT2Triggered = true;
@@ -1328,13 +1416,12 @@ namespace lib60870.CS104
 
                 int frameSendSequenceNumber = ((buffer[3] * 0x100) + (buffer[2] & 0xfe)) / 2;
                 int frameRecvSequenceNumber = ((buffer[5] * 0x100) + (buffer[4] & 0xfe)) / 2;
-                if (unconfirmedSentedIMessages>0)
-                    unconfirmedSentedIMessages--;
+                statistics.UnconfirmedSendSequenceCounter=0;
 
                 //DebugLog("Received I frame: N(S) = " + frameSendSequenceNumber + " N(R) = " + frameRecvSequenceNumber);
 
                 /* проверка порядкового номера приема N(R) - соединение будет закрыто при неожиданном значении */
-                if (frameSendSequenceNumber != receiveSequenceNumber)
+                if (frameSendSequenceNumber != statistics.ReceiveSequenceCounter)
                 {      
                     //DebugLog("Sequence error: Close connection!");
                     return false;
@@ -1343,8 +1430,8 @@ namespace lib60870.CS104
                 if (CheckSequenceNumber(frameRecvSequenceNumber) == false)
                     return false;
 
-                receiveSequenceNumber = (receiveSequenceNumber + 1) % 32768;
-                unconfirmedReceivedIMessages++;
+                statistics.ReceiveSequenceCounter = (statistics.ReceiveSequenceCounter + 1) % 32768;
+                statistics.UnconfirmedReceiveSequenceCounter++;
 
                 try
                 {
@@ -1360,7 +1447,7 @@ namespace lib60870.CS104
 					if (messageHandled == false) {
 
 	                    if (asduReceivedHandler != null)
-	                        asduReceivedHandler(unconfirmedReceivedIMessages, asdu);
+	                        asduReceivedHandler(statistics.UnconfirmedReceiveSequenceCounter, asdu);
 
 					}
                 }
@@ -1375,39 +1462,28 @@ namespace lib60870.CS104
             else if ((buffer[2] & 0x03) == 0x01)
             { 
                 int seqNo = (buffer[4] + buffer[5] * 0x100) / 2;
-                if (unconfirmedSentedIMessages > 0)
-                    unconfirmedSentedIMessages--;
+                statistics.UnconfirmedSendSequenceCounter = 0;
 
-                //DebugLog("Recv S(" + seqNo + ") (own sendcounter = " + sendSequenceNumber + ")");
+                //DebugLog("Recv S(" + seqNo + ") (own sendcounter = " + statistics.SendSequenceNumber + ")");
 
                 if (connectionHandler != null)
                     connectionHandler(seqNo, ConnectionEvent.RECEIV_S);
                 if (CheckSequenceNumber(seqNo) == false)
                     return false;
+
+                uMessageTimeout = 0;
             }
             /* U format frame */
             else if ((buffer[2] & 0x03) == 0x03)
-            { 
-
-                uMessageTimeout = 0;
-
+            {               
                 if (buffer[2] == 0x43)
-                { /* Пришел TESTFR_ACT и ответили TESTFR_CON */
+                { 
                     statistics.RcvdTestFrActCounter++;
                     DebugLog("RCVD TESTFR_ACT");
 
-                    //DebugLog("SEND TESTFR_CON");
-                    //netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
-                    //statistics.SentMsgCounter++;
-
-                    //if (sentMessageHandler != null)
-                    //{
-                    //    sentMessageHandler(sentMessageHandlerParameter, TESTFR_CON_MSG, 6);
-                    //}
                     if (connectionHandler != null)
                     {
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.TESTFR_ACT_RECEIVED);
-                        //connectionHandler(connectionHandlerParameter, ConnectionEvent.TESTFR_CON_SENDED);
                     }                      
                 }
                 else if (buffer[2] == 0x83)
@@ -1448,6 +1524,7 @@ namespace lib60870.CS104
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_RECEIVED);
                 }
 
+                uMessageTimeout = 0;
             }
             /* Unknown message type */
             else
@@ -1497,7 +1574,7 @@ namespace lib60870.CS104
             }
             catch (Exception)
             {
-                // неверный аргумент
+                DebugLog("Не допустимый аргумент для создания сокета");
                 throw new SocketException(87); 
             }
 
@@ -1519,10 +1596,7 @@ namespace lib60870.CS104
                 catch (ObjectDisposedException)
                 {
                     socket = null;
-
-                    //DebugLog("ObjectDisposedException -> Connect canceled");
-
-                    // Перекрывающаяся операция была прервана из-за закрытия объекта Socket.
+                    DebugLog("Socket был заянят");
                     throw new SocketException(995); 
                 }
             }
@@ -1531,44 +1605,49 @@ namespace lib60870.CS104
                 socket.Close();
                 socket = null;
 
-                // Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.
+                DebugLog("Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.");
                 throw new SocketException(10060); 
             }
         }
 
+        /// <summary>
+        /// Проверка таймаутов
+        /// </summary>
         private bool handleTimeouts()
         {
             UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
 
             if (currentTime > nextT3Timeout)
             {
-
                 if (outStandingTestFRConMessages > 2)
-                {
-                    connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T3);
+                {                  
+                    connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T3);              
                     return false;
                 }
                 else
                 {
                     netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
-
-                    statistics.SentMsgCounter++;
-                    //DebugLog("U message T3 timeout");
+                    statistics.SentMsgCounter++;                
                     uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
                     outStandingTestFRConMessages++;
+
                     ResetT3Timeout();
 
                     sentMessageHandler?.Invoke(sentMessageHandlerParameter, TESTFR_ACT_MSG, 6);
                     connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.TESTFR_ACT_SENDED);
+
+                    DebugLog("S message T3 timeout");
                 }
             }
+            else
+                statistics.TimerT3Counter = nextT3Timeout - currentTime;
 
-            if (unconfirmedReceivedIMessages > 0)
+            if (statistics.UnconfirmedReceiveSequenceCounter > 0)
             {
                 if (checkConfirmTimeout((long)currentTime))
 				{
                     lastConfirmationTime = (long)currentTime;
-                    unconfirmedReceivedIMessages = 0;
+                    statistics.UnconfirmedReceiveSequenceCounter = 0;
                     timeoutT2Triggered = false;
                     SendSMessage(" Таймаут Т2");
                 }
@@ -1578,23 +1657,37 @@ namespace lib60870.CS104
             {
                 if (currentTime > uMessageTimeout)
                 {
-                    //DebugLog("U message T1 timeout");
+                    statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000);
+
+                    DebugLog("S message T1 timeout");
 
                     connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T1);
 
                     return false;
                 }
+                else
+                {
+                    statistics.TimerT1Counter = uMessageTimeout - currentTime;
+                }                  
             }
+
 
             /* проверить, подтвердил ли контрагент сообщения */
             lock (sentASDUs)
             {
                 if (oldestSentASDU != -1)
                 {
-
                     if (((long)currentTime - sentASDUs[oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000))
                     {
+                        DebugLog("U message T1 timeout");
+
+                        connectionHandler?.Invoke(connectionHandlerParameter, ConnectionEvent.CLOSED_T1);
+
                         return false;
+                    }
+                    else
+                    {
+                        statistics.TimerT1Counter = (UInt64)(apciParameters.T1 * 1000) - ((UInt64)currentTime - (UInt64)sentASDUs[oldestSentASDU].sentTime);
                     }
                 }
             }
@@ -1668,6 +1761,9 @@ namespace lib60870.CS104
             return localCertificates[0];
         }
 
+        /// <summary>
+        /// Проверка связи
+        /// </summary>
         private void HandleConnection()
         {
             
@@ -1724,8 +1820,8 @@ namespace lib60870.CS104
                                 }
 
                                 //DebugLog("TLS authentication error: " + message);
-
-                                //Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.
+                              
+                                DebugLog("Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.");
                                 throw new SocketException(10060);
                             }
 
@@ -1735,7 +1831,7 @@ namespace lib60870.CS104
                             }
                             else
                             {
-                                //Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.
+                                DebugLog("Истекло время ожидания попытки подключения, или произошел сбой при отклике подключенного узла.");
                                 throw new SocketException(10060);
                             }
 
@@ -1805,10 +1901,10 @@ namespace lib60870.CS104
                                         }
                                     }
 
-                                    if (unconfirmedReceivedIMessages >= apciParameters.W)
+                                    if (statistics.UnconfirmedReceiveSequenceCounter >= apciParameters.W)
                                     {
                                         lastConfirmationTime = SystemUtils.currentTimeMillis();
-                                        unconfirmedReceivedIMessages = 0;
+                                        statistics.UnconfirmedReceiveSequenceCounter = 0;
                                         timeoutT2Triggered = false;
                                         SendSMessage(" Лимит W");
                                     }

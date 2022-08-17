@@ -21,7 +21,7 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 
 	/// <summary>
@@ -37,6 +37,13 @@ namespace lib60870.CS101
 
 	public class SingleCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SingleCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}
@@ -181,6 +188,13 @@ namespace lib60870.CS101
 
 	public class DoubleCommand : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "DoubleCommand";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 1;
 		}

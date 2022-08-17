@@ -78,6 +78,13 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileReady : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "FileReady";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 6;
 		}
@@ -196,6 +203,13 @@ namespace lib60870.CS101
 	/// </summary>
 	public class SectionReady : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SectionReady";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 7;
 		}
@@ -323,6 +337,13 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileCallOrSelect : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "FileCallOrSelect";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 4;
 		}
@@ -423,6 +444,13 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileLastSegmentOrSection : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "FileLastSegmentOrSection";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}
@@ -537,6 +565,14 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileACK : InformationObject
 	{
+
+		override public string Name
+		{
+			get
+			{
+				return "FileACK";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 4;
 		}
@@ -657,6 +693,13 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileDirectory : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "FileDirectory";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 13;
 		}
@@ -816,6 +859,14 @@ namespace lib60870.CS101
 	/// </summary>
 	public class FileSegment : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "FileSegment";
+			}
+		}
+
 		private static int ENCODED_SIZE = 4;
 
 		override public int GetEncodedSize() {

@@ -65,36 +65,36 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CS101\BinaryCounterReading.cs" />
-    <Compile Include="CS101\Bitstring32.cs" />
+    <Compile Include="CS101\InformationObjects\Bitstring32.cs" />
     <Compile Include="CS101\CauseOfTransmission.cs" />
-    <Compile Include="CS101\DoublePointInformation.cs" />
-    <Compile Include="CS101\EndOfInitialization.cs" />
-    <Compile Include="CS101\EventOfProtectionEquipment.cs" />
+    <Compile Include="CS101\InformationObjects\DoublePointInformation.cs" />
+    <Compile Include="CS101\InformationObjects\EndOfInitialization.cs" />
+    <Compile Include="CS101\InformationObjects\EventOfProtectionEquipment.cs" />
     <Compile Include="CS101\FileObjects.cs" />
     <Compile Include="CS101\FileServices.cs" />
     <Compile Include="CS101\InformationObject.cs" />
-    <Compile Include="CS101\IntegratedTotals.cs" />
+    <Compile Include="CS101\InformationObjects\IntegratedTotals.cs" />
     <Compile Include="CS101\Master.cs" />
-    <Compile Include="CS101\MeasuredValueNormalized.cs" />
-    <Compile Include="CS101\MeasuredValueScaled.cs" />
-    <Compile Include="CS101\MeasuredValueShort.cs" />
+    <Compile Include="CS101\InformationObjects\MeasuredValueNormalized.cs" />
+    <Compile Include="CS101\InformationObjects\MeasuredValueScaled.cs" />
+    <Compile Include="CS101\InformationObjects\MeasuredValueShort.cs" />
     <Compile Include="CS101\OutputCircuitInfo.cs" />
-    <Compile Include="CS101\PackedOutputCircuitInfo.cs" />
-    <Compile Include="CS101\PackedStartEventsOfProtectionEquipment.cs" />
-    <Compile Include="CS101\ParameterMeasuredValues.cs" />
+    <Compile Include="CS101\InformationObjects\PackedOutputCircuitInfo.cs" />
+    <Compile Include="CS101\InformationObjects\PackedStartEventsOfProtectionEquipment.cs" />
+    <Compile Include="CS101\InformationObjects\ParameterMeasuredValues.cs" />
     <Compile Include="CS101\QualityDescriptor.cs" />
     <Compile Include="CS101\QualityDescriptorP.cs" />
     <Compile Include="CS101\ScaledValue.cs" />
     <Compile Include="CS101\SetpointCommandQualifier.cs" />
-    <Compile Include="CS101\SetpointCommands.cs" />
-    <Compile Include="CS101\SingleCommand.cs" />
+    <Compile Include="CS101\InformationObjects\SetpointCommands.cs" />
+    <Compile Include="CS101\InformationObjects\SingleCommand.cs" />
     <Compile Include="CS101\SingleEvent.cs" />
-    <Compile Include="CS101\SinglePointInformation.cs" />
+    <Compile Include="CS101\InformationObjects\SinglePointInformation.cs" />
     <Compile Include="CS101\Slave.cs" />
     <Compile Include="CS101\StartEvent.cs" />
     <Compile Include="CS101\StatusAndStatusChangeDetection.cs" />
-    <Compile Include="CS101\StepPositionInformation.cs" />
-    <Compile Include="CS101\SystemInformationCommands.cs" />
+    <Compile Include="CS101\InformationObjects\StepPositionInformation.cs" />
+    <Compile Include="CS101\InformationObjects\SystemInformationCommands.cs" />
     <Compile Include="CS101\TypeID.cs" />
     <Compile Include="CS104\TlsSecurityInformation.cs" />
     <Compile Include="Other\ASDUParsingException.cs" />
@@ -212,5 +212,6 @@
   <ItemGroup>
     <Resource Include="IEC104.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

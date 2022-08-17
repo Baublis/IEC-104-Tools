@@ -23,10 +23,17 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 	public class IntegratedTotals : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "IntegratedTotals";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}

@@ -277,6 +277,9 @@
 
             </StackPanel>
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,1">
+                <Label x:Name="TimerT1_Counter" Margin="0,0,10,0" MinWidth="60">T1: 0</Label>
+                <Label x:Name="TimerT2_Counter" Margin="0,0,10,0" MinWidth="60">T2: 0</Label>
+                <Label x:Name="TimerT3_Counter" Margin="0,0,10,0" MinWidth="60">T3: 0</Label>
                 <Label x:Name="Label_UNN_R_" Margin="0,0,10,0" MinWidth="60">UNC(R): 0</Label>
                 <Label x:Name="Label_UNN_S_" Margin="0,0,10,0" MinWidth="60">UNC(S): 0</Label>
                 <Label x:Name="Label_N_R_" Margin="0,0,10,0" MinWidth="60">N(R): 0</Label>

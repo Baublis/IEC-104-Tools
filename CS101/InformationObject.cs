@@ -98,7 +98,11 @@ namespace lib60870.CS101
 					frame.SetNextByte ((byte)((objectAddress / 0x10000) & 0xff));
 			}
 		}
-			
+		public abstract string Name
+		{
+			get;
+		}
+
 	}
 
 	public interface IPrivateIOFactory

@@ -23,10 +23,18 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
     public class EndOfInitialization : InformationObject
     {
+        override public string Name
+        {
+            get
+            {
+                return "EndOfInitialization";
+            }
+        }
+
         private byte coi;
 
         /// <summary>

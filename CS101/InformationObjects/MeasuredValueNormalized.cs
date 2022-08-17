@@ -23,11 +23,19 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 
 	public class MeasuredValueNormalizedWithoutQuality : InformationObject
 	{
+
+		override public string Name
+		{
+			get
+			{
+				return "MeasuredValueNormalizedWithoutQuality";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 2;
 		}

@@ -21,11 +21,18 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 
 	public class SetpointCommandNormalized : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SetpointCommandNormalized";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 3;
 		}
@@ -174,6 +181,13 @@ namespace lib60870.CS101
 
 	public class SetpointCommandScaled : InformationObject 
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SetpointCommandScaled";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 3;
 		}
@@ -290,6 +304,13 @@ namespace lib60870.CS101
 
 	public class SetpointCommandShort : InformationObject 
 	{
+		override public string Name
+		{
+			get
+			{
+				return "SetpointCommandShort";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 5;
 		}
@@ -408,6 +429,13 @@ namespace lib60870.CS101
 
 	public class Bitstring32Command : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "Bitstring32Command";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 4;
 		}

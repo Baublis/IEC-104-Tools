@@ -21,11 +21,18 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
 
 	public class PackedOutputCircuitInfo : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "PackedOutputCircuitInfo";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 7;
 		}
@@ -118,6 +125,13 @@ namespace lib60870.CS101
 
 	public class PackedOutputCircuitInfoWithCP56Time2a : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "PackedOutputCircuitInfoWithCP56Time2a";
+			}
+		}
 		override public int GetEncodedSize() {
 			return 11;
 		}

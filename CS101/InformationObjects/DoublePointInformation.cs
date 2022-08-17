@@ -1,5 +1,5 @@
 /*
- *  BitString32.cs
+ *  DoublePointInformation.cs
  *
  *  Copyright 2016 MZ Automation GmbH
  *
@@ -23,18 +23,32 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870.CS101.InformationObjects
 {
-	
-	public class Bitstring32 : InformationObject
+	public enum DoublePointValue {
+		INTERMEDIATE = 0,
+		OFF = 1,
+		ON = 2,
+		INDETERMINATE = 3
+	}
+
+	public class DoublePointInformation : InformationObject
 	{
+		override public string Name
+		{
+			get
+			{
+				return "DoublePointInformation";
+			}
+		}
+
 		override public int GetEncodedSize() {
-			return 5;
+			return 1;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_BO_NA_1;
+				return TypeID.M_DP_NA_1;
 			}
 		}
 
@@ -44,9 +58,9 @@ namespace lib60870.CS101
 			}
 		}
 
-		private UInt32 value;
+		private DoublePointValue value;
 
-		public UInt32 Value {
+		public DoublePointValue Value {
 			get {
 				return this.value;
 			}
@@ -60,13 +74,14 @@ namespace lib60870.CS101
 			}
 		}
 
-		public Bitstring32 (int ioa, UInt32 value, QualityDescriptor quality) : base(ioa)
+		public DoublePointInformation(int ioa, DoublePointValue value, QualityDescriptor quality)
+			: base(ioa)
 		{
 			this.value = value;
 			this.quality = quality;
 		}
 
-		internal Bitstring32 (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal DoublePointInformation (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -75,36 +90,34 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			value = msg [startIndex++];
-			value += ((uint)msg [startIndex++] * 0x100);
-			value += ((uint)msg [startIndex++] * 0x10000);
-			value += ((uint)msg [startIndex++] * 0x1000000);
+			/* parse DIQ (double point information with qualitiy) */
+			byte diq = msg [startIndex++];
 
-			quality = new QualityDescriptor (msg[startIndex++]);
+			value = (DoublePointValue)(diq & 0x03);
 
+			quality = new QualityDescriptor ((byte) (diq & 0xf0));
 		}
 
 		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte((byte) (value % 0x100));
-			frame.SetNextByte((byte) ((value / 0x100) % 0x100));
-			frame.SetNextByte((byte) ((value / 0x10000) % 0x100));
-			frame.SetNextByte((byte) (value / 0x1000000));
+			byte val = quality.EncodedValue;
 
-			frame.SetNextByte (quality.EncodedValue);
+			val += (byte)value;
+
+			frame.SetNextByte (val);
 		}
 	}
 
-	public class Bitstring32WithCP24Time2a : Bitstring32
+	public class DoublePointWithCP24Time2a : DoublePointInformation
 	{
 		override public int GetEncodedSize() {
-			return 8;
+			return 4;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_BO_TA_1;
+				return TypeID.M_DP_TA_1;
 			}
 		}
 
@@ -122,13 +135,13 @@ namespace lib60870.CS101
 			}
 		}
 
-		public Bitstring32WithCP24Time2a(int ioa, UInt32 value, QualityDescriptor quality, CP24Time2a timestamp) :
-			base(ioa, value, quality)
+		public DoublePointWithCP24Time2a(int ioa, DoublePointValue value, QualityDescriptor quality, CP24Time2a timestamp)
+			: base(ioa, value, quality)
 		{
 			this.timestamp = timestamp;
 		}
 
-		internal Bitstring32WithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal DoublePointWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -137,7 +150,7 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 5; /* value + quality */
+			startIndex += 1; /* skip DIQ */
 
 			/* parse CP24Time2a (time stamp) */
 			timestamp = new CP24Time2a (msg, startIndex);
@@ -150,15 +163,15 @@ namespace lib60870.CS101
 		}
 	}
 
-	public class Bitstring32WithCP56Time2a : Bitstring32
+	public class DoublePointWithCP56Time2a : DoublePointInformation
 	{
 		override public int GetEncodedSize() {
-			return 12;
+			return 8;
 		}
 
 		override public TypeID Type {
 			get {
-				return TypeID.M_BO_TB_1;
+				return TypeID.M_DP_TB_1;
 			}
 		}
 
@@ -176,14 +189,14 @@ namespace lib60870.CS101
 			}
 		}
 
-		public Bitstring32WithCP56Time2a(int ioa, UInt32 value, QualityDescriptor quality, CP56Time2a timestamp) :
-			base(ioa, value, quality)
+		public DoublePointWithCP56Time2a(int ioa, DoublePointValue value, QualityDescriptor quality, CP56Time2a timestamp)
+			: base(ioa, value, quality)
 		{
 			this.timestamp = timestamp;
 		}
 
-		internal Bitstring32WithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
+		internal DoublePointWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -191,7 +204,7 @@ namespace lib60870.CS101
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
 
-			startIndex += 5; /* value + quality */
+			startIndex += 1; /* skip DIQ */
 
 			/* parse CP56Time2a (time stamp) */
 			timestamp = new CP56Time2a (msg, startIndex);
@@ -202,7 +215,6 @@ namespace lib60870.CS101
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
 		}
-
 	}
 
 }
