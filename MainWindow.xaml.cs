@@ -2498,9 +2498,9 @@ namespace IEC_104_Tools
 			string descr = "";
 			if (description != null)
 				foreach (string str in description)
-					if (str.Split(' ').Length == 3)
-						if (IOA == str.Split(' ')[1] && CA == str.Split(' ')[0])
-							descr = str.Split(' ')[2];
+					if (str.Split(';').Length == 3)
+						if (IOA == str.Split(';')[1] && CA == str.Split(';')[0])
+							descr = str.Split(';')[2];
 			return descr;
 		}
 
@@ -2570,9 +2570,16 @@ namespace IEC_104_Tools
 				foreach (var item in main_source)
 				{
 					foreach (string str in description)
-						if (str.Split(' ').Length == 3)
-							if (item.IOA_d == str.Split(' ')[1] && item.CA == str.Split(' ')[0])
-								item.Description = str.Split(' ')[2];
+						if (str.Split(';').Length == 3)
+							if (item.IOA_d.Replace(" ","") == str.Split(';')[1] && item.CA.Replace(" ", "") == str.Split(';')[0])
+								item.Description = str.Split(';')[2];
+				}
+				foreach (var item in object_source)
+				{
+					foreach (string str in description)
+						if (str.Split(';').Length == 3)
+							if (item.IOA_d.Replace(" ", "") == str.Split(';')[1] && item.CA.Replace(" ", "") == str.Split(';')[0])
+								item.Description = str.Split(';')[2];
 				}
 			}
 			grid_object.ItemsSource = null;
@@ -2791,10 +2798,12 @@ namespace IEC_104_Tools
 				});
 				Itemlist1.Filter = yourCostumFilter1;
 				grid_main.ItemsSource = Itemlist1;
+				grid_object.ItemsSource = object_source;
 			}
 			else
             {
 				grid_main.ItemsSource = main_source;
+				grid_object.ItemsSource = object_source;
 			}								
         }
 
