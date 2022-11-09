@@ -169,7 +169,7 @@ namespace IEC_104_Tools
 				}
 
 			}
-			return result_verification;
+			return true;
 		}
 		
 		private void timer_Tick(object sender, EventArgs e)
