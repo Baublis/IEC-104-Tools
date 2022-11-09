@@ -425,7 +425,7 @@ namespace IEC_104_Tools
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
-			verification();
+			//verification();
 			this.Title = this.Title + "  " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 			Microsoft.Win32.RegistryKey currentUserKey = Microsoft.Win32.Registry.CurrentUser;
 			Microsoft.Win32.RegistryKey IEC104TOLS = currentUserKey.CreateSubKey("IEC104TOLS");
