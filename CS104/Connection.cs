@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -1566,11 +1567,21 @@ namespace lib60870.CS104
         {
             IPAddress ipAddress = null;
             IPEndPoint remoteEP = null;
+            IPHostEntry host = null;
 
             try
             {
-                ipAddress = IPAddress.Parse(hostname);
-                remoteEP = new IPEndPoint(ipAddress, tcpPort);              
+                if (Regex.IsMatch(hostname, "[a-z]+"))
+                {
+                    host = Dns.GetHostEntry(hostname);
+                    ipAddress = host.AddressList[0];
+                    remoteEP = new IPEndPoint(ipAddress, tcpPort);
+                }
+                else
+                {
+                    ipAddress = IPAddress.Parse(hostname);
+                    remoteEP = new IPEndPoint(ipAddress, tcpPort);
+                }                         
             }
             catch (Exception)
             {

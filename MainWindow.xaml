@@ -67,7 +67,7 @@
                         <Button Content="Разъединить" Canvas.Left="200" Canvas.Top="43" Width="95" VerticalAlignment="Center" Height="25" Click="button_DisConnect_Click" Focusable="False"/>
                         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
                             <Label Content="IP/Hostname:" Canvas.Left="1" Canvas.Top="15" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="80" Height="25"/>
-                            <TextBox x:Name="textBox_Host" Height="25" Canvas.Left="82" TextWrapping="Wrap" Text="127.0.0.1" Canvas.Top="15" Width="100" RenderTransformOrigin="0.192,-0.522" VerticalContentAlignment="Center" VerticalAlignment="Center" PreviewTextInput="textBox_Host_PreviewTextInput"/>
+                            <TextBox x:Name="textBox_Host" Height="25" Canvas.Left="82" TextWrapping="Wrap" Text="127.0.0.1" Canvas.Top="15" Width="100" RenderTransformOrigin="0.192,-0.522" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="10,42,0,0">
                             <Label Content="Port:" Canvas.Left="1" Canvas.Top="15" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="80" Height="25"/>

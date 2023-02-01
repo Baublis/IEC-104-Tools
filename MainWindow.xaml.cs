@@ -1122,7 +1122,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (SinglePointInformation)asdu.GetElement(i);
+							repaly = false; var val = (SinglePointInformation)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1220,7 +1220,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (DoublePointInformation)asdu.GetElement(i);
+							repaly = false; var val = (DoublePointInformation)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1319,7 +1319,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (Bitstring32)asdu.GetElement(i);
+							repaly = false; var val = (Bitstring32)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1418,7 +1418,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (MeasuredValueNormalized)asdu.GetElement(i);
+							repaly = false; var val = (MeasuredValueNormalized)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1517,7 +1517,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (MeasuredValueScaled)asdu.GetElement(i);
+							repaly = false; var val = (MeasuredValueScaled)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1617,7 +1617,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (MeasuredValueShort)asdu.GetElement(i);
+							repaly = false; var val = (MeasuredValueShort)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1716,7 +1716,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (IntegratedTotals)asdu.GetElement(i);
+							repaly = false; var val = (IntegratedTotals)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1815,7 +1815,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (SinglePointWithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (SinglePointWithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -1914,7 +1914,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (DoublePointWithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (DoublePointWithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -2013,7 +2013,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (Bitstring32WithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (Bitstring32WithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -2112,7 +2112,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (MeasuredValueShortWithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (MeasuredValueShortWithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -2211,7 +2211,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (IntegratedTotalsWithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (IntegratedTotalsWithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -2310,7 +2310,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (EndOfInitialization)asdu.GetElement(i);
+							repaly = false; var val = (EndOfInitialization)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
@@ -2342,7 +2342,7 @@ namespace IEC_104_Tools
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
 						{
-							var val = (SingleCommandWithCP56Time2a)asdu.GetElement(i);
+							repaly = false; var val = (SingleCommandWithCP56Time2a)asdu.GetElement(i);
 
 							this.Dispatcher.Invoke(() =>
 							{
