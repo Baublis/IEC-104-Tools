@@ -2337,7 +2337,6 @@ namespace IEC_104_Tools
 						}					
 					}
 					break;
-
 				case TypeID.C_SC_TA_1: // {58}
 					{
 						for (int i = 0; i < asdu.NumberOfElements; i++)
