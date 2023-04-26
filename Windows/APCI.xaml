@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IEC_104_Tools"
         mc:Ignorable="d"
-        Title="Команды тестирования APCI" Height="180" Width="270"
+        Title="Команды APCI" Height="180" Width="270"
         xmlns:IEC_104_Tols="clr-namespace:IEC_104_Tools"
         Owner="{x:Static IEC_104_Tols:App.CurrentMainWindow}" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner">

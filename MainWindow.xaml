@@ -18,7 +18,7 @@
         <DockPanel  Margin="0,0,0,25" LastChildFill="True">
             <Menu DockPanel.Dock="Top" Height="25" VerticalAlignment="Top" FontSize="12">
                 <MenuItem Header="Соединение">
-                    <MenuItem Header="Соединить" Click="buttonConnectionClick" Name="button_Connect2"/>
+                    <MenuItem Header="Соединить" Click="button_Connect_Click" Name="button_Connect2"/>
                     <MenuItem Header="Параметры" Click="show_con_Parameters_Click" />
                     <Separator />
                     <MenuItem Header="Отправить START DT" Click="sendSTARTDT_ACT_Click"/>
@@ -31,7 +31,7 @@
                     <MenuItem Header="Автоматическое восстановление связи" IsCheckable="True"  Name="automaticReconnect" IsChecked="True"/>
                 </MenuItem>
                 <MenuItem Header="Журнал">
-                    <MenuItem Header="Очистить все" Click="clearDataGridClick" />
+                    <MenuItem Header="Очистить все" Click="clear_DataGrid_Click" />
                     <Separator />
                     <MenuItem Header="Сохранить журнал, как..." Click="Save_logs_to_file" />
                     <MenuItem Header="Загрузить журнал, как..." IsEnabled="False" />
@@ -46,9 +46,11 @@
                     <MenuItem Header="Системная информация" Click="show_Commands_System_Click" />
                     <MenuItem Header="Информация о процессе" Click="show_Commands_Process_Click" />
                     <MenuItem Header="Параметры" Click="show_Commands_Parameters_Click"/>
+                    <MenuItem Header="Передача файлов" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Тесты">
                     <MenuItem Header="Команды тестирования APCI (CS 104)" Click="show_APCI_Click" />
+                    <MenuItem Header="Flow control (CS 104)" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Помощь">
                     <MenuItem Name="IEC101" Header="ГОСТ Р МЭК 870-5. Раздел 101" Click="show_PDF_Click"/>
@@ -58,20 +60,20 @@
             <WrapPanel DockPanel.Dock="Top">
                 <GroupBox BorderBrush="Black" Header="Соединение" Height="130" VerticalAlignment="Top" Width="310" Margin="5,0,0,0">
                     <Canvas Height="114" Margin="0,-5,0,-2" Width="306">
-                        <Button Content="Соединить" Canvas.Left="200" Canvas.Top="10" Width="95" Height="25" Click="buttonConnectionClick" Focusable="False"/>
-                        <Button Content="Разъединить" Canvas.Left="200" Canvas.Top="43" Width="95" VerticalAlignment="Center" Height="25" Click="buttonDisconnectionClick" Focusable="False"/>
+                        <Button Content="Соединить" Canvas.Left="200" Canvas.Top="10" Width="95" Height="25" Click="button_Connect_Click" Focusable="False"/>
+                        <Button Content="Разъединить" Canvas.Left="200" Canvas.Top="43" Width="95" VerticalAlignment="Center" Height="25" Click="button_DisConnect_Click" Focusable="False"/>
                         <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
                             <Label Content="IP/Hostname:" Canvas.Left="1" Canvas.Top="15" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="80" Height="25"/>
                             <TextBox x:Name="textBox_Host" Height="25" Canvas.Left="82" TextWrapping="Wrap" Text="127.0.0.1" Canvas.Top="15" Width="100" RenderTransformOrigin="0.192,-0.522" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="10,42,0,0">
                             <Label Content="Port:" Canvas.Left="1" Canvas.Top="15" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="80" Height="25"/>
-                            <TextBox x:Name="textBox_Port" Text="2404" x:FieldModifier="private" Height="25" Canvas.Left="82" TextWrapping="Wrap" Canvas.Top="15" Width="55" RenderTransformOrigin="0.192,-0.522" VerticalContentAlignment="Center" VerticalAlignment="Center" PreviewTextInput="textBoxHostOnInputChange"/>
+                            <TextBox x:Name="textBox_Port" Text="2404" x:FieldModifier="private" Height="25" Canvas.Left="82" TextWrapping="Wrap" Canvas.Top="15" Width="55" RenderTransformOrigin="0.192,-0.522" VerticalContentAlignment="Center" VerticalAlignment="Center" PreviewTextInput="textBox_Host_PreviewTextInput"/>
                             <Button x:Name="cmdUp_PORT" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_PORT_Click"/>
                             <Button x:Name="cmdDown_PORT" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_PORT_Click"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="10,77,0,0"/>
-                        <Button Content="Сброс настроек" Canvas.Left="200" Canvas.Top="77" Width="95" VerticalAlignment="Center" Height="25" Focusable="False" Click="buttonDefaultClick"/>
+                        <Button Content="Сброс настроек" Canvas.Left="200" Canvas.Top="77" Width="95" VerticalAlignment="Center" Height="25" Focusable="False" Click="Button_Default_Click"/>
                     </Canvas>
                 </GroupBox>
                 <Grid Margin="5,0,0,0">
@@ -80,13 +82,13 @@
                             <Label Content="CA:" Canvas.Top="10" Canvas.Left="1" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="32" Height="25"/>
                             <Button Content="Прочитать" Canvas.Top="10" Canvas.Left="241" Width="65" VerticalAlignment="Center" Height="25" Click="send_C_RD_NA_1_Click"/>
                             <StackPanel Orientation="Horizontal" Canvas.Top="8" Canvas.Left="28">
-                                <TextBox x:Name="txtNum_CA" x:FieldModifier="private" Margin="5,5,0,5" Width="26" Text="1" PreviewTextInput="textBoxPortOnInputChange" VerticalContentAlignment="Center"/>
+                                <TextBox x:Name="txtNum_CA" x:FieldModifier="private" Margin="5,5,0,5" Width="26" Text="1" PreviewTextInput="textBox_Port_PreviewTextInput" VerticalContentAlignment="Center"/>
                                 <Button x:Name="cmdUp_CA" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_CA_Click"/>
                                 <Button x:Name="cmdDown_CA" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_CA_Click"/>
                             </StackPanel>
                             <Label Content="IOA:" Canvas.Top="10" VerticalContentAlignment="Center" VerticalAlignment="Center" Width="32" Height="25" Canvas.Left="107"/>
                             <StackPanel Orientation="Horizontal" Canvas.Top="8" Canvas.Left="134">
-                                <TextBox x:Name="txtNum_IOA" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="1" PreviewTextInput="textBoxPortOnInputChange" VerticalContentAlignment="Center"/>
+                                <TextBox x:Name="txtNum_IOA" x:FieldModifier="private" Margin="5,5,0,5" Width="50" Text="1" PreviewTextInput="textBox_Port_PreviewTextInput" VerticalContentAlignment="Center"/>
                                 <Button x:Name="cmdUp_IOA" x:FieldModifier="private" Margin="5,5,0,5" Content="˄" Width="20" Click="cmdUp_IOA_Click"/>
                                 <Button x:Name="cmdDown_IOA" x:FieldModifier="private" Margin="0,5,0,5"  Content="˅" Width="20" Click="cmdDown_IOA_Click"/>
                             </StackPanel>
