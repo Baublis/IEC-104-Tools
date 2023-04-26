@@ -17,6 +17,9 @@
     <Grid>
         <DockPanel  Margin="0,0,0,25" LastChildFill="True">
             <Menu DockPanel.Dock="Top" Height="25" VerticalAlignment="Top" FontSize="12">
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Выход" Click="exit_Click"/>
+                </MenuItem>
                 <MenuItem Header="Соединение">
                     <MenuItem Header="Соединить" Click="button_Connect_Click" Name="button_Connect2"/>
                     <MenuItem Header="Параметры" Click="show_con_Parameters_Click" />
@@ -40,7 +43,7 @@
                     <MenuItem Header="Пауза" IsCheckable="True" Name="pause_Logs"/>
                     <MenuItem Header="Показывать исходящие сообщения" IsCheckable="true" Name="outMassage" IsChecked="True"/>
                     <MenuItem Header="Вести журнал в корне приложения" IsCheckable="True" Name="auto_logs"/>
-                    <MenuItem Header="Включить журнал отладки" Click="Debug_DataGrid_Click" IsCheckable="True"/>
+                    <MenuItem Header="Включить Debug журнал" Click="Debug_DataGrid_Click" IsCheckable="True"/>
                 </MenuItem>
                 <MenuItem Header="Команды">
                     <MenuItem Header="Системная информация" Click="show_Commands_System_Click" />
@@ -49,7 +52,7 @@
                     <MenuItem Header="Передача файлов" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Тесты">
-                    <MenuItem Header="Команды тестирования APCI (CS 104)" Click="show_APCI_Click" />
+                    <MenuItem Header="Команды APCI (CS 104)" Click="show_APCI_Click" />
                     <MenuItem Header="Flow control (CS 104)" IsEnabled="False" />
                 </MenuItem>
                 <MenuItem Header="Помощь">
@@ -256,7 +259,7 @@
                     </TabItem>
                     <TabItem x:Name="DataGridDebug" Visibility="Hidden" Background="{x:Null}">
                         <TabItem.Header>
-                            <Label  Content="Журнал отладки" 
+                            <Label  Content="DebugMessage" 
                             MouseLeftButtonDown="tabItem_Clicked" 
                             FontSize="12" Margin="-5,-5,-5,-5"                          
                     />
@@ -265,7 +268,7 @@
                         </ListBox>
                     </TabItem>
                 </TabControl>
-                <CheckBox FontSize="14" x:Name="automaticScrolling" Content="Автоматическая прокрутка" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Top"/>
+                <CheckBox FontSize="14" x:Name="automaticScrolling" Content="Автоматический скроллинг" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Top"/>
             </Grid>
         </DockPanel>
         <Grid VerticalAlignment="Bottom" Height="27" x:Name="con_State" Background="LightGray">
