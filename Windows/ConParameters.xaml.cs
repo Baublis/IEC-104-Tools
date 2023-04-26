@@ -122,8 +122,8 @@ namespace IEC_104_Tools
             frm.aPCIParameters = aPCIParameters;
             frm.applicationLayerParameters = applicationLayerParameters;
             frm.t_con = t_con;
-            if (frm.con != null)
-                if (frm.con.IsRunning)
+            if (frm.connection != null)
+                if (frm.connection.IsRunning)
                 {
                     frm.disconnection();
                     Thread.Sleep(50);

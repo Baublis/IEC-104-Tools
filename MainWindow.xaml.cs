@@ -137,40 +137,6 @@ namespace IEC_104_Tools
 			}
 			filt_type.SelectedIndex = 0;
 		}
-
-		bool verification()
-		{
-			DateTime localDate = DateTime.Now;
-			bool result_verification = false;
-			Microsoft.Win32.RegistryKey currentUserKey = Microsoft.Win32.Registry.CurrentUser;
-			Microsoft.Win32.RegistryKey IEC104TOLS = currentUserKey.CreateSubKey("IEC104TOLS");
-			if (IEC104TOLS.GetValue("password") != null)
-			{
-				if (IEC104TOLS.GetValue("password").ToString() == localDate.Year.ToString())
-					result_verification = true;
-			}
-			while (!result_verification)
-			{
-				PasswordWindow passwordWindow = new PasswordWindow();
-				if (passwordWindow.ShowDialog() == true)
-				{
-					if (passwordWindow.Password == ((localDate.Year + localDate.Month - 2000) * 3).ToString())
-					{
-						IEC104TOLS.SetValue("password", localDate.Year.ToString());
-						result_verification = true;
-						MessageBox.Show("Авторизация пройдена");
-					}
-					else
-						MessageBox.Show("Неверный пароль или сбита дата на вашем ПК");
-				}
-				else
-				{
-					MessageBox.Show("Авторизация не пройдена или сбита дата на вашем ПК");
-				}
-
-			}
-			return true;
-		}
 		
 		private void timer_Tick(object sender, EventArgs e)
 		{
