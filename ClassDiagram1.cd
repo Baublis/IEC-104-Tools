@@ -1,166 +1,184 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="IEC_104_Tools.MainWindow">
-    <Position X="0.5" Y="3.75" Width="1.5" />
+  <Class Name="IEC_104_Tools.MainWindow" Collapsed="true">
+    <Position X="3.5" Y="4.75" Width="1.5" />
     <Compartments>
       <Compartment Name="Methods" Collapsed="true" />
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
-    <NestedTypes>
-      <Class Name="IEC_104_Tools.MainWindow.MyBaseData" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>MainWindow.xaml.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Class>
-    </NestedTypes>
-    <AssociationLine Name="con" Type="lib60870.CS104.Connection" FixedToPoint="true">
+    <AssociationLine Name="con" Type="lib60870.CS104.Connection" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="2" Y="4.062" />
-        <Point X="3" Y="4.062" />
+        <Point X="5" Y="5.125" />
+        <Point X="5.875" Y="5.125" />
+        <Point X="5.875" Y="4.875" />
+        <Point X="6.5" Y="4.875" />
       </Path>
-    </AssociationLine>
-    <AssociationLine Name="main_source" Type="System.Collections.ObjectModel.ObservableCollection&lt;T&gt;">
-      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="-1.198" Y="0.616" Height="0.182" Width="1.063" />
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.11" Y="0.06" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="object_source" Type="System.Collections.ObjectModel.ObservableCollection&lt;T&gt;">
-      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="-1.604" Y="0.995" Height="0.182" Width="1.144" />
+    <AssociationLine Name="WindowSystem" Type="IEC_104_Tools.WindowSystem" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3.625" Y="5.535" />
+        <Point X="3.625" Y="6.267" />
+        <Point X="3.625" Y="6.267" />
+        <Point X="3.625" Y="7" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.359" Y="0.216" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="raw_source" Type="System.Collections.ObjectModel.ObservableCollection&lt;T&gt;" ManuallyRouted="true">
+    <AssociationLine Name="WindowProcess" Type="IEC_104_Tools.WindowProcess" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="0.804" Y="3.75" />
-        <Point X="0.804" Y="2.846" />
-        <Point X="0.804" Y="2.846" />
-        <Point X="0.804" Y="1.941" />
+        <Point X="3.875" Y="5.535" />
+        <Point X="3.875" Y="6.479" />
+        <Point X="5.396" Y="6.479" />
+        <Point X="5.396" Y="7" />
       </Path>
-      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="-1.844" Y="0.208" Height="0.182" Width="0.986" />
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.515" Y="0.185" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="applicationLayerParameters" Type="lib60870.CS101.ApplicationLayerParameters" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="WindowParameters" Type="IEC_104_Tools.WindowParameters" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="2" Y="4.375" />
-        <Point X="2.787" Y="4.375" />
-        <Point X="2.787" Y="6.188" />
-        <Point X="3.542" Y="6.187" Type="JumpStart" />
-        <Point X="3.708" Y="6.188" Type="JumpEnd" />
-        <Point X="4.042" Y="6.187" Type="JumpStart" />
-        <Point X="4.208" Y="6.188" Type="JumpEnd" />
-        <Point X="6.5" Y="6.188" />
+        <Point X="4.188" Y="5.535" />
+        <Point X="4.188" Y="6.271" />
+        <Point X="7.167" Y="6.271" />
+        <Point X="7.167" Y="7" />
       </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.765" Y="0.185" />
+      </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="aPCIParameters" Type="lib60870.CS104.APCIParameters" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="WindowHelp" Type="IEC_104_Tools.WindowHelp" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="2" Y="4.812" />
-        <Point X="2.436" Y="4.812" />
-        <Point X="2.436" Y="6.887" />
-        <Point X="3.542" Y="6.887" Type="JumpStart" />
-        <Point X="3.708" Y="6.887" Type="JumpEnd" />
-        <Point X="4.042" Y="6.887" Type="JumpStart" />
-        <Point X="4.208" Y="6.887" Type="JumpEnd" />
-        <Point X="7.75" Y="6.887" />
+        <Point X="4.5" Y="5.535" />
+        <Point X="4.5" Y="6.083" />
+        <Point X="9.125" Y="6.083" />
+        <Point X="9.125" Y="7" />
       </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.265" Y="0.185" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="APCI" Type="IEC_104_Tools.APCI" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.812" Y="5.535" />
+        <Point X="4.812" Y="5.875" />
+        <Point X="10.604" Y="5.875" />
+        <Point X="10.604" Y="7" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.765" Y="0.185" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="aPCIParameters" Type="lib60870.CS104.APCIParameters" ManuallyRouted="true">
+      <Path>
+        <Point X="5" Y="4.875" />
+        <Point X="5.656" Y="4.875" />
+        <Point X="5.656" Y="3.062" />
+        <Point X="5.25" Y="3.062" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
+        <Position X="-1.161" Y="-1.564" Height="0.182" Width="1.524" />
+      </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>wAEoxSLIz/KBEhVA4hRJVQyiCgFbIERSwgAiMIIGAMA=</HashCode>
+      <HashCode>wAEsxSLIz/aBEhVA4hRJVQyiCgFbIERSwgByEIIGEMA=</HashCode>
       <FileName>MainWindow.xaml.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Field Name="con" />
-      <Field Name="main_source" />
-      <Field Name="object_source" />
-      <Field Name="raw_source" />
-      <Field Name="applicationLayerParameters" />
       <Field Name="aPCIParameters" />
+      <Field Name="con" />
+      <Property Name="WindowSystem" />
+      <Property Name="WindowProcess" />
+      <Property Name="WindowParameters" />
+      <Property Name="WindowHelp" />
+      <Property Name="APCI" />
     </ShowAsAssociation>
-    <Lollipop Position="0.1" />
+    <Lollipop Position="0.1" Collapsed="true" />
   </Class>
-  <Class Name="lib60870.CS104.Connection">
-    <Position X="3" Y="3.75" Width="2.25" />
+  <Class Name="lib60870.CS104.Connection" Collapsed="true">
+    <Position X="6.5" Y="4.75" Width="2.25" />
     <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Properties" Collapsed="true" />
       <Compartment Name="Methods" Collapsed="true" />
+      <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
-    <NestedTypes>
-      <Struct Name="lib60870.CS104.Connection.SentASDU" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>CS104\Connection.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
-    <AssociationLine Name="apciParameters" Type="lib60870.CS104.APCIParameters" FixedFromPoint="true" FixedToPoint="true">
+    <InheritanceLine Type="IEC_104_Tools.MainWindow" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="4.125" Y="5.569" />
-        <Point X="4.125" Y="7.438" />
-        <Point X="7.75" Y="7.438" />
+        <Point X="5" Y="5.375" />
+        <Point X="5.875" Y="5.375" />
+        <Point X="5.875" Y="5.375" />
+        <Point X="6.5" Y="5.375" />
       </Path>
-    </AssociationLine>
-    <AssociationLine Name="asduSentedHandler" Type="lib60870.CS104.ASDUSentedHandler" FixedFromPoint="true" FixedToPoint="true">
+    </InheritanceLine>
+    <AssociationLine Name="statistics" Type="lib60870.CS104.ConnectionStatistics" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="3.875" Y="3.75" />
-        <Point X="3.875" Y="1.875" />
-        <Point X="6.5" Y="1.875" />
+        <Point X="8.312" Y="4.75" />
+        <Point X="8.312" Y="3.125" />
+        <Point X="9" Y="3.125" />
       </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.05" Y="0.079" />
+      </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="debuglogHandler" Type="lib60870.CS104.DebugLogHandler" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="asduSentedHandler" Type="lib60870.CS104.ASDUSentedHandler" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="4.375" Y="3.75" />
-        <Point X="4.375" Y="2.312" />
-        <Point X="6.5" Y="2.312" />
+        <Point X="7" Y="4.75" />
+        <Point X="7" Y="1.781" />
+        <Point X="9" Y="1.781" />
       </Path>
     </AssociationLine>
     <AssociationLine Name="asduReceivedHandler" Type="lib60870.CS104.ASDUReceivedHandler" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="3.375" Y="3.75" />
-        <Point X="3.375" Y="1.438" />
-        <Point X="6.5" Y="1.438" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="statistics" Type="lib60870.CS104.ConnectionStatistics" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="3.625" Y="5.569" />
-        <Point X="3.625" Y="7.467" />
-        <Point X="2.25" Y="7.467" />
+        <Point X="6.688" Y="4.75" />
+        <Point X="6.688" Y="1.438" />
+        <Point X="9" Y="1.438" />
       </Path>
     </AssociationLine>
     <AssociationLine Name="connectionHandler" Type="lib60870.CS104.ConnectionHandler" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="4.875" Y="3.75" />
-        <Point X="4.875" Y="2.75" />
-        <Point X="6.5" Y="2.75" />
+        <Point X="8" Y="4.75" />
+        <Point X="8" Y="2.5" />
+        <Point X="9" Y="2.5" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.015" Y="0.06" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <AssociationLine Name="debuglogHandler" Type="lib60870.CS104.DebugLogHandler" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="7.312" Y="4.75" />
+        <Point X="7.312" Y="2.125" />
+        <Point X="9" Y="2.125" />
       </Path>
     </AssociationLine>
+    <AssociationLine Name="ConnectionEvent" Type="lib60870.CS104.ConnectionEvent" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="8.75" Y="5.188" />
+        <Point X="10.625" Y="5.188" />
+        <Point X="10.625" Y="4.131" />
+      </Path>
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.11" Y="0.435" />
+      </MemberNameLabel>
+    </AssociationLine>
     <TypeIdentifier>
-      <HashCode>x0hQEVEKSu4OCE9XawBQb7KyAClQppQENM0EgKBuACg=</HashCode>
+      <HashCode>x0hQEVEISu4OCE9XawBQb7KyAClQppQENM0EgKBuACk=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Field Name="alParameters" />
-      <Field Name="apciParameters" />
-      <Field Name="asduReceivedHandler" />
-      <Field Name="asduSentedHandler" />
-      <Field Name="debuglogHandler" />
       <Field Name="statistics" />
+      <Field Name="asduSentedHandler" />
+      <Field Name="asduReceivedHandler" />
       <Field Name="connectionHandler" />
+      <Field Name="debuglogHandler" />
+      <Property Name="ConnectionEvent" />
     </ShowAsAssociation>
   </Class>
-  <Class Name="lib60870.CS101.ApplicationLayerParameters">
-    <Position X="6.5" Y="3.75" Width="2.25" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-      <Compartment Name="Methods" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AggAAEQAAAAAAAAAARBAAEAAAAACCAAAQBBAAGAAABA=</HashCode>
-      <FileName>CS101\ApplicationLayerParameters.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="lib60870.CS104.APCIParameters">
-    <Position X="7.75" Y="5.25" Width="1.5" />
+    <Position X="3.5" Y="1.25" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Methods" Collapsed="true" />
@@ -170,33 +188,8 @@
       <FileName>CS104\APCIParameters.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="System.Collections.ObjectModel.ObservableCollection&lt;T&gt;" Collapsed="true">
-    <Position X="0.5" Y="1.25" Width="2" />
-    <Compartments>
-      <Compartment Name="Methods" Collapsed="true" />
-      <Compartment Name="Events" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier />
-    <Lollipop Position="0.2" />
-  </Class>
-  <Class Name="IEC_104_Tools.ConParameters" Collapsed="true">
-    <Position X="10.75" Y="4.25" Width="1.75" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-      <Compartment Name="Methods" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AACAAAAgEECAAAgBAAAAQAAAQAAABAQAAIAAIAACAAA=</HashCode>
-      <FileName>Windows\ConParameters.xaml.cs</FileName>
-    </TypeIdentifier>
-    <ShowAsAssociation>
-      <Field Name="aPCIParameters" />
-      <Field Name="applicationLayerParameters" />
-    </ShowAsAssociation>
-    <Lollipop Position="0.2" />
-  </Class>
   <Class Name="lib60870.CS104.ConnectionStatistics" Collapsed="true">
-    <Position X="0.5" Y="7" Width="1.75" />
+    <Position X="9" Y="2.75" Width="2.25" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Properties" Collapsed="true" />
@@ -207,28 +200,8 @@
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="IEC_104_Tools.WindowProcess" Collapsed="true">
-    <Position X="10.75" Y="2.25" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>ABEhAQAAAgCAABAIAEAQAQAABCBAAQACAAIKIEACQIk=</HashCode>
-      <FileName>Windows\WindowProcess.xaml.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" />
-  </Class>
-  <Class Name="IEC_104_Tools.WindowParameters" Collapsed="true">
-    <Position X="10.75" Y="3.25" Width="1.75" />
-    <Compartments>
-      <Compartment Name="Fields" Collapsed="true" />
-      <Compartment Name="Methods" Collapsed="true" />
-    </Compartments>
-    <TypeIdentifier>
-      <HashCode>AFEhEAAAAgCAAAAIAAAAAIAAAAAAAAAAAAAAIAAAQqA=</HashCode>
-      <FileName>Windows\WindowParameters.xaml.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" />
-  </Class>
   <Class Name="IEC_104_Tools.WindowSystem" Collapsed="true">
-    <Position X="10.75" Y="1.25" Width="1.75" />
+    <Position X="3.5" Y="7" Width="1.75" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Methods" Collapsed="true" />
@@ -237,42 +210,74 @@
       <HashCode>ABEhAABAAkCAAARAQABQBAAgAiAAAAACAAAAAEAQQMA=</HashCode>
       <FileName>Windows\WindowSystem.xaml.cs</FileName>
     </TypeIdentifier>
-    <Lollipop Position="0.2" />
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="IEC_104_Tools.WindowProcess" Collapsed="true">
+    <Position X="5.25" Y="7" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ABEhAQAAAgCAABAIAEAQAQAABCBAAQACAAIKIEACQIk=</HashCode>
+      <FileName>Windows\WindowProcess.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="IEC_104_Tools.WindowParameters" Collapsed="true">
+    <Position X="7" Y="7" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AFEhEAAAAgCAAAAIAAAAAIAAAAAAAAAAAAAAIAAAQqA=</HashCode>
+      <FileName>Windows\WindowParameters.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="IEC_104_Tools.WindowHelp" Collapsed="true">
+    <Position X="9" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Windows\WindowHelp.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="IEC_104_Tools.APCI" Collapsed="true">
+    <Position X="10.5" Y="7" Width="1.25" />
+    <TypeIdentifier>
+      <HashCode>AAAgAABAAAAAEAAAAAAAAAAAAgAAAEAQAAAAAAAAAAA=</HashCode>
+      <FileName>Windows\APCI.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
   </Class>
   <Enum Name="lib60870.CS104.ConnectionEvent" Collapsed="true">
-    <Position X="8.5" Y="2.5" Width="1.5" />
+    <Position X="9" Y="3.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>gAAAACAIBAICoAAEAAEQAAAgkBAAAAAEBCAAAIAAQAA=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Delegate Name="lib60870.CS104.ASDUReceivedHandler" Collapsed="true">
-    <Position X="6.5" Y="1.25" Width="2" />
+    <Position X="9" Y="1.25" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAEAAAAAA=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="lib60870.CS104.ASDUSentedHandler" Collapsed="true">
-    <Position X="6.5" Y="1.5" Width="2" />
+    <Position X="9" Y="1.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAEAAAAAA=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="lib60870.CS104.DebugLogHandler" Collapsed="true">
-    <Position X="6.5" Y="1.75" Width="2" />
+    <Position X="9" Y="1.75" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Delegate>
-  <Delegate Name="lib60870.CS104.ConnectionHandler">
-    <Position X="6.5" Y="2" Width="2" />
+  <Delegate Name="lib60870.CS104.ConnectionHandler" Collapsed="true">
+    <Position X="9" Y="2" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQ=</HashCode>
       <FileName>CS104\Connection.cs</FileName>
     </TypeIdentifier>
   </Delegate>
-  <Font Name="Segoe UI" Size="9" />
+  <Font Name="Segoe UI" Size="11" />
 </ClassDiagram>
